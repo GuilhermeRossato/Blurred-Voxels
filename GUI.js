@@ -33,6 +33,8 @@ const GUI = (function (){
 					renderer.domElement.style.top = "0";
 					renderer.domElement.style.display = "none";
 					renderer.domElement.style.zIndex = (-i-1).toString();
+					renderer.domElement.style.backfaceVisibility = "hidden";
+					renderer.domElement.style.perspective = "inherit";
 					renderer.domElement.style.filter = `blur(${i*4.05}px)`;
 					document.body.appendChild(renderer.domElement);
 					this.renderers.push(renderer);
