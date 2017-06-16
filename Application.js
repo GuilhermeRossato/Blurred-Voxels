@@ -6,9 +6,8 @@ const Application = (function() {
 		GUI.logger.log(`Loaded Page at ${(this.pageLoadTime|0)}ms and Images at ${(this.imageLoadTime|0)}ms`);
 		lastTimeStamp = 0;
 		leftOver = 0;
+		world.init(GUI.camera, GUI.scenes);
 		GUI.render();
-		world.init();
-		world.addToScene(GUI.scene);
 		GUI.renderers.forEach(render => render.domElement.style.display = "block");
 		window.requestAnimationFrame(update);
 	}
@@ -40,7 +39,6 @@ const Application = (function() {
 			world = new WorldHandler(this.images.getImages());
 			firstFrame.call(this);
 		}
-
 	}
 }());
 

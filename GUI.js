@@ -1,5 +1,6 @@
 const GUI = (function (){
 	return {
+		blurLevels: 4,
 		init: function() {
 			this.logger = new Logger(document.body);
 			this.logger.fadeTime = 30;
@@ -26,7 +27,8 @@ const GUI = (function (){
 			}
 			try {
 				this.renderers = [];
-				for (let i = 0; i < 2; i++) {
+				this.scenes = [];
+				for (let i = 0; i < this.blurLevels; i++) {
 					let renderer = new THREE.WebGLRenderer(rendererConfig);
 					//renderer.setClearColor(new THREE.Color(rendererConfig.clearColor), 1);
 					renderer.domElement.style.position = "absolute";
@@ -35,17 +37,18 @@ const GUI = (function (){
 					renderer.domElement.style.zIndex = (-i-1).toString();
 					renderer.domElement.style.backfaceVisibility = "hidden";
 					renderer.domElement.style.perspective = "inherit";
-					renderer.domElement.style.filter = `blur(${i*4.05}px)`;
+					renderer.domElement.style.filter = `blur(${i}px)`;
 					document.body.appendChild(renderer.domElement);
 					this.renderers.push(renderer);
+					this.scenes.push(new THREE.Scene());
 				}
 			} catch (err) {
 				return false;
 			}
 			this.camera = new THREE.PerspectiveCamera(85,window.innerWidth / window.innerHeight, 0.2, 100);
+			this.camera.position.set(0,0,4);
 			addEventListener('resize', this.onResize.bind(this), false);
 			this.onResize();
-			this.scene = new THREE.Scene();
 			this.setupLight();
 			return true;
 		},
@@ -56,18 +59,19 @@ const GUI = (function (){
 				light.name = name;
 				return light;
 			}
-			let lights = [addLight("Top", { x: 0, y: 1, z: 0 }, 2.935),
-			addLight("Front", { x: 0, y: 0, z: -1 }, 2.382),
-			addLight("Back", { x: 0, y: 0, z: 1 }, 2.3548),
-			addLight("Left", { x: -1, y: 0, z: 0 }, 1.7764),
-			addLight("Right", { x: 1, y: 0, z: 0 }, 1.7742),
-			addLight("Bottom", { x: 0, y: -1, z: 0 }, 1.5161)];
-			lights.forEach(light=>this.scene.add(light));
+			let lights = [
+			addLight("Top",		{ x: 0, y: 1, z: 0 },	2.935),
+			addLight("Front",	{ x: 0, y: 0, z: -1 },	2.382),
+			addLight("Back",	{ x: 0, y: 0, z: 1 },	2.3548),
+			addLight("Left",	{ x: -1, y: 0, z: 0 },	1.7764),
+			addLight("Right",	{ x: 1, y: 0, z: 0 },	1.7742),
+			addLight("Bottom",	{ x: 0, y: -1, z: 0 },	1.5161)];
+			this.scenes.forEach(scene => lights.forEach(light=>scene.children.push(light)));
 		},
 		render: function() {
-			for (let i = 0; i < 2; i++) {
-				this.scene.children[6] && (this.scene.children[6].position.x = 2*(i-0.5));
-				this.renderers[i].render(this.scene, this.camera);
+			for (let i = 0; i < this.blurLevels; i++) {
+				//this.scene.children[6] && (this.scene.children[6].position.x = 2*(i-0.5));
+				this.renderers[i].render(this.scenes[i], this.camera);
 			}
 		}
 	}
