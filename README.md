@@ -12,10 +12,12 @@ Just open the file index.html on a browser.
 
  - First test, basic 3d rendering, two canvases side by side.
 ![Preview 1](https://github.com/GuilhermeRossato/Blurred-Boxes/blob/master/Images/preview1.gif?raw=true)
+ - Depth of field blur effect with 4 canvases
+![Preview 2](https://github.com/GuilhermeRossato/Blurred-Boxes/blob/master/Images/preview2.gif?raw=true)
 
 # How it works
 
-A few nested canvases are put in order, each with a different blur radius. Then a different scene is drawn in each canvas. The distance between a block and the camera's target determines which scene it will be part of (basically, the further away, the more blur it will be drawn with).
+A few nested canvases are put in order, each with a different blur radius. Then a different scene is drawn in each canvas. The distance between a block and the camera determines how blurry something will look.
 
 # Problems
 
