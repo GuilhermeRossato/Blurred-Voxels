@@ -17,7 +17,7 @@ const GUI = (function (){
 				this.camera.aspect = window.innerWidth / window.innerHeight;
 				this.camera.updateProjectionMatrix();
 			}
-			(this.renderers) && (this.renderers.forEach(renderer=>renderer.setSize(window.innerWidth, window.innerHeight)));
+			(this.renderers) && ((this.renderers.forEach(renderer=>renderer.setSize(window.innerWidth, window.innerHeight))) || this.render());
 		},
 		setupWorld: function() {
 			let rendererConfig = {
@@ -37,7 +37,10 @@ const GUI = (function (){
 					renderer.domElement.style.zIndex = (-i-1).toString();
 					renderer.domElement.style.backfaceVisibility = "hidden";
 					renderer.domElement.style.perspective = "inherit";
-					renderer.domElement.style.filter = `blur(${i}px)`;
+					renderer.domElement.style.filter = `blur(${i}px) hue-rotate(${(10*(1-i/(this.blurLevels))|0)}deg)`;
+					//renderer.domElement.style.filter = `hue-rotate(${(360*(1-i/(this.blurLevels))|0)}deg)`;
+					console.log(renderer.domElement.style.filter);
+
 					document.body.appendChild(renderer.domElement);
 					this.renderers.push(renderer);
 					this.scenes.push(new THREE.Scene());
@@ -70,7 +73,6 @@ const GUI = (function (){
 		},
 		render: function() {
 			for (let i = 0; i < this.blurLevels; i++) {
-				//this.scene.children[6] && (this.scene.children[6].position.x = 2*(i-0.5));
 				this.renderers[i].render(this.scenes[i], this.camera);
 			}
 		}
