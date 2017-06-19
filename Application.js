@@ -1,28 +1,29 @@
 const Application = (function() {
-	let performancer = new Performancer();
+	var performancer = new Performancer();
 	performancer.wrapper.style.zIndex = "11";
-	let world;
+	//performancer.wrapper.style.display = "none";
+	var world;
 	function firstFrame() {
-		GUI.logger.log(`Loaded Page at ${(this.pageLoadTime|0)}ms and Images at ${(this.imageLoadTime|0)}ms`);
+		GUI.logger.log(`Loaded Page at ${(this.pageLoadTime | 0)}ms and Images at ${(this.imageLoadTime | 0)}ms`);
 		lastTimeStamp = 0;
 		leftOver = 0;
 		world.init(GUI.camera, GUI.scenes);
 		GUI.render();
-		GUI.renderers.forEach(render => render.domElement.style.display = "block");
+		GUI.renderers.forEach(render=>render.domElement.style.display = "block");
 		window.requestAnimationFrame(update);
+		//singleUpdate();
 	}
-	let difference, timeStamp, lastTimeStamp = 0, leftOver = 0;
+	var difference, timeStamp, lastTimeStamp = 0, leftOver = 0;
+	function singleUpdate() {
+		world.update(world.animationPeriod/180);
+		GUI.render();
+	}
 	function update() {
 		timeStamp = performance.now();
-		difference = timeStamp - lastTimeStamp + leftOver;
-		lastTimeStamp = timeStamp;
+		difference = timeStamp - lastTimeStamp;
 		performancer.update(difference);
-		if (difference > 256) difference = 128;
-			while (difference >= 16) {
-				difference -= 16;
-				world.update();
-			}
-			leftOver = difference;
+		world.update(difference/16);
+		lastTimeStamp = timeStamp;
 		GUI.render();
 		window.requestAnimationFrame(update);
 	}
@@ -38,8 +39,15 @@ const Application = (function() {
 			this.imageLoadTime = performance.now();
 			world = new WorldHandler(this.images.getImages());
 			firstFrame.call(this);
+		},
+		onKeyDown: function(event) {
+			if (event.code === "KeyS")
+				singleUpdate();
+			if (event.code === "KeyR")
+				world.reset();
 		}
 	}
 }());
 
 window.addEventListener("load", Application.init.bind(Application));
+window.addEventListener("keydown", Application.onKeyDown.bind(Application));
