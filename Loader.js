@@ -33,7 +33,7 @@ const Loader = (function() {
 		}
 		GUI.init();
 		Application.init();
-		let worldGenerator = new Worker("https://cdn.rawgit.com/GuilhermeRossato/VoxelWorldGeneration/40793138/Script/World/Generation/WorldWorker1.js");
+		let worldGenerator = new Worker("https://rawgit.com/GuilhermeRossato/Voxel-World-Generation/master/Script/World/Generation/WorldWorker1.js");
 		worldGenerator.onresponse = ev=>((worldGenerator.terminate() || true) && ((ev.data[0]==="c")?this.onWorldLoad(ev.data.substr(1)):this.onError("World Generation has returned an unhandled event")));
 		worldGenerator.postMessage(`c${(Math.random()*1000|0)},${(Math.random()*1000|0)},${(Math.random()*1000|0)}`);
 		let imageLoader = new ImageLoader();
