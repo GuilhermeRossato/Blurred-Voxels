@@ -61,7 +61,7 @@ function ImageLoader(done, error, load) {
 			let eventName = eventList[eventList.indexOf(type.toLowerCase())];
 			if (!eventName)
 				return console.error(`Unhandled event type: "${type}"`);
-			callbacks[[eventName]] = callback;
+			callbacks[eventName] = callback;
 			return this;
 		},
 		then: function(callback) {
@@ -69,6 +69,7 @@ function ImageLoader(done, error, load) {
 			return this;
 		}
 	}
+	this.on = eventSetter.on;
 
 	/* Private Variables */
 	let imageCount = 0,
