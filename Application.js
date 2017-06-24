@@ -10,13 +10,16 @@ const Application = (function() {
 		world.init(GUI.camera, GUI.scenes);
 		GUI.render();
 		GUI.renderers.forEach(render=>render.domElement.style.display = "block");
-		window.requestAnimationFrame(update);
-		//singleUpdate();
+		if (true)
+			window.requestAnimationFrame(update);
+		else
+			window.requestAnimationFrame(fixedUpdate);
 	}
 	var difference, timeStamp, lastTimeStamp = 0, leftOver = 0;
-	function singleUpdate() {
+	function fixedUpdate() {
 		world.update(world.animationPeriod/180);
 		GUI.render();
+		window.requestAnimationFrame(fixedUpdate);
 	}
 	function update() {
 		timeStamp = performance.now();
@@ -30,15 +33,7 @@ const Application = (function() {
 
 	return {
 		init: function() {
-			this.pageLoadTime = performance.now();
-			GUI.init();
-			this.images = new ImageLoader();
-			this.images.loadImages(imageLoaderCache.map(i=>i.fileName)).then(this.createWorld.bind(this));
-		},
-		createWorld: function() {
-			this.imageLoadTime = performance.now();
-			world = new WorldHandler(this.images.getImages());
-			firstFrame.call(this);
+			window.addEventListener("keydown", this.onKeyDown.bind(this));
 		},
 		onKeyDown: function(event) {
 			if (event.code === "KeyS")
@@ -48,6 +43,3 @@ const Application = (function() {
 		}
 	}
 }());
-
-window.addEventListener("load", Application.init.bind(Application));
-window.addEventListener("keydown", Application.onKeyDown.bind(Application));
