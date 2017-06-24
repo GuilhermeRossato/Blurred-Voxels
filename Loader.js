@@ -1,3 +1,6 @@
+/*
+*	This is an event driven module to handle the application's loading states
+*/
 const Loader = (function() {
 	let element, state, times;
 
@@ -35,9 +38,9 @@ const Loader = (function() {
 		worldGenerator.postMessage(`c${(Math.random()*1000|0)},${(Math.random()*1000|0)},${(Math.random()*1000|0)}`);
 		let imageLoader = new ImageLoader();
 		imageLoader.on("error", this.onError.bind(this, "Image Loader has returned an unhandled event"));
-		imageLoader.on("load", this.onImagesProgress.bind(this));
-		imageLoader.on("done", this.onLoadImages.bind(this));
+		imageLoader.on("done", this.onLoadedImages.bind(this));
 		imageLoader.loadImages(imageLoaderCache.map(i=>i.fileName));
+		this.images = imageLoader.getImages();
 	}
 
 	return {
@@ -47,25 +50,27 @@ const Loader = (function() {
 			callEverything.call(this);
 			this.onPageLoad = undefined;
 		},
-		onLoadImages: function() {
-			this.onLoadImages = undefined;
+		onLoadedImages: function() {
+			this.onLoadedImages = undefined;
 			times.images = performance.now();
-			checkDone();
+			Application.images = this.images;
+			Application.startMainLoop();
 		},
 		onError: function(message, event) {
 			window.mainWrapper.children[0].innerText = "Error";
 			setDescription(message);
 		},
 		onWorldLoad: function(data) {
+			if (this.onLoadImages !== undefined) {
+				console.log("That's unusual, world returned before images!");
+				console.log("Trying again");
+				return setTimeout(this.onWorldLoad.bind(this, data), 1000);
+			}
+			times.world = performance.now();
+			console.log(times);
 			let interpreted = decodeWorldMessage(data);
 			let worldData = new WorldDataArray(chunkSize, chunkSize, chunkSize);
 			data.decode(data.substr(interpreted.start+1));
-		},
-		onImageProgress: function() {
-
-		},
-		init: function() {
-
 		}
 	}
 })();
