@@ -3,23 +3,47 @@ function WorldHandler(imageList) {
 	this.geometry = new THREE.BoxGeometry(1,1,1);
 	this.middle = new THREE.Vector2(0,0);
 	this.look = new THREE.Vector3(0,0);
+	this.loaded = false;
 }
 
 WorldHandler.prototype = {
 	constructor: WorldHandler,
-	animationPeriod: 360,
 	init: function(camera, scenes) {
-		this.state = "loading";
+		this.loaded = false;
 		this.camera = camera;
 		this.scenes = scenes;
 		var geometry = this.geometry;
 		var material = this.createMaterial("grass_green.png");
-		this.loadingMesh = new THREE.Mesh(geometry, material);
-		this.loadingMesh.position.y = 1.5;
-		scenes[0].add(this.loadingMesh);
+		this.loadMeshes = scenes.map(scene => new THREE.Mesh(geometry, material));
+		this.loadMeshes.forEach((mesh, i) => (mesh.position.y = 1.5) && (scenes[i].add(mesh)));
+		var minDist = -5, maxDist = 50;
+		//this.df = FastInterpolation.any(minDist*minDist, 0, maxDist*maxDist, this.scenes.length);
 
-		var minDist = 4, maxDist = 26;
-		this.df = FastInterpolation.any(minDist*minDist, 0, maxDist*maxDist, this.scenes.length);
+		/* Transform Squared into Index */
+		this.getIndex = function(d) {
+			//return (FastInterpolation.any(0,0,60,this.scenes.length, Math.sqrt(d)))|0;
+			if (d < 60)
+				return 0;
+			else if (d < 143)
+				return 1;
+			else if (d < 270)
+				return 2;
+			else if (d < 670)
+				return 3;
+			else if (d < 899)
+				return 4;
+			else if (d < 1295)
+				return 5;
+			else if (d < 1763)
+				return 6;
+			else if (d < 2303)
+				return 7;
+			else if (d < 2915)
+				return 8;
+			else
+				return 9;
+			//Generated using   var maxValue = 10, maxDistance = 60, myStr = ""; for (var value = 0; value < maxValue; value++) myStr+=(value===0?"if":"else if")+" (d < "+(Math.pow(FastInterpolation.any(0,0,maxValue,maxDistance,value+0.99999),2)|0)+")\n\treturn "+value+";\n"; myStr;
+		}
 		this.clampSquaredSize = function(d) {
 			(d < minDist*minDist) && (d = minDist*minDist);
 			(d > maxDist*maxDist) && (d = maxDist*maxDist);
@@ -43,57 +67,61 @@ WorldHandler.prototype = {
 			//transparent: true
 		});
 		return material;
-	}, loadWorld: function(data) {
-		if (this.state !== "loading")
+	}, addChunk: function(chunk) {
+		if (this.loaded)
 			return console.warn("Unexpected World Load");
-		let mesh = this.loadingMesh;
-		mesh.parent.remove(mesh);
-		this.loadingMesh = undefined;
-		this.state = "loaded";
-		this.addMeshesFromData(data, mesh);
-	}, addMeshesFromData(data, mesh) {
-		var x, y, z, i, j, jm;
+		if (!this.chunks)
+			this.chunks = []
+		this.chunks.push(chunk);
+	}, addMeshesFromLoadedData() {
+		var x, y, z, i, j, jm, data, offsetX, offsetY, offsetZ;
+		/* Remove past element */
+		var mesh = this.loadMeshes[0];
+		this.loadMeshes.forEach(mesh => mesh.parent.remove(mesh));
 		jm = this.scenes.length;
-		i = data.getCount();
-		for (y = 0; y < chunkSize; y++)
-			for (z = 0; z < chunkSize; z++)
-				for (x = 0; x < chunkSize; x++)
-					if (data.get(x,y,z) > 0) {
-						for (j = 0 ; j < jm; j++)
-							scene.add(mesh.clone());
-						if (!(i=i-1))
-							break;
+		this.chunks.forEach(chunk => {
+			/* Fill world with blocks */
+			data = chunk.data;
+			offsetX = (chunk.offset[0]-0.5)*chunkSize;
+			offsetY = (chunk.offset[1]-1.1)*chunkSize;
+			offsetZ = (chunk.offset[2]-0.5)*chunkSize;
+			i = data.getCount();
+			for (y = 0; y < chunkSize; y++)
+				for (z = 0; z < chunkSize; z++)
+					for (x = 0; x < chunkSize; x++) {
+						if ((y != 2 || offsetY > -18) && (data.get(x,y,z) > 0)) {
+							for (j = 0 ; j < jm; j++) {
+								mesh.position.set(x+offsetX, y+offsetY, z+offsetZ);
+								this.scenes[j].add(mesh.clone());
+							}
+							if (!(i=i-1))
+								break;
+						}
 					}
+		});
+		this.loadedData = undefined;
+		this.loadMeshes = undefined;
 	}, reset: function() {
 		this.counter = undefined;
 	}, update: function(frames) {
-		//frames *= 4;
-		this.counter = (this.counter-frames > 0)?(this.counter-frames):this.animationPeriod;
-		var t = this.counter/this.animationPeriod, c = Math.cos(t*Math.PI*2), s = Math.sin(t*Math.PI*2);
-		
-		if (this.state === "loading" && this.loadingMesh) {
-			this.counter = (this.counter-frames > 0)?(this.counter-frames):this.animationPeriod;
-			t = FastInterpolation.any(0, 0, 0.01, -0.04, 0.99, 1.04, 1, 1).at(t);
-			this.loadingMesh.rotation.y = t*Math.PI/2;
-			return
-		}
-
-		this.camera.position.set(c*18,12,s*18);
-		this.camera.lookAt(new THREE.Vector3(c*9,5,s*9));
-		if (this.counter % 3 === 0) {
-			//this.ray.setFromCamera(new THREE.Vector2(0.0,0.0), this.camera);
-			//this.intersect = this.ray.intersectObjects(this.scenes[0].children)[0];
-		}
 		this.look = this.camera.position;
 		var len = this.scenes[0].children.length;
-		var elem;
-		for (var i = 4 ; i < len; i++) {
+		var lx, ly, lz;
+		lx = this.look.x;
+		ly = this.look.y;
+		lz = this.look.z;
+		var ex, ey, ez, i, j;
+		for (i = 4 ; i < len; i++) {
 			elem = this.scenes[0].children[i];
-			if (elem instanceof THREE.Mesh) {
-				var d = this.clampSquaredSize(this.look.distanceToSquared(elem.position));
-				var id = this.df.at(d)|0;
-				(id < 0) && (id = 0) || (id >= this.scenes.length) && (id = this.scenes.length-1);
-				for (var j = 0 ; j < this.scenes.length; j++) {
+			if (this.scenes[0].children[i] instanceof THREE.Mesh) {
+				ex = this.scenes[0].children[i].position.x;
+				ey = this.scenes[0].children[i].position.y;
+				ez = this.scenes[0].children[i].position.z;
+				//var d = this.clampSquaredSize((this.look.x-elem.position.x)*(this.look.x-elem.position.x)+(this.look.y-elem.position.y)*(this.look.y-elem.position.y)+(this.look.z-elem.position.z)*(this.look.z-elem.position.z));
+				//var id = this.df.at(d)|0;
+				var id = this.getIndex((lx-ex)*(lx-ex)+(ly-ey)*(ly-ey)+(lz-ez)*(lz-ez));
+				//(id < 0) && (id = 0) || (id >= this.scenes.length) && (id = this.scenes.length-1);
+				for (j = 0 ; j < this.scenes.length; j++) {
 					this.scenes[j].children[i].visible = (id === j);
 				}
 			}
