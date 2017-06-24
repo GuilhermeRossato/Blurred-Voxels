@@ -2,13 +2,7 @@ const GUI = (function (){
 	return {
 		blurLevels: 6,
 		init: function() {
-			this.logger = new Logger(document.body);
-			this.logger.fadeTime = 30;
-			this.logger.domElement.style.width = "40vw";
-			this.logger.domElement.style.minWidth = "410px";
-			this.logger.domElement.style.marginLeft = "82px";
-			this.logger.domElement.style.fontFamily = "Calibri";
-			this.logger.colors.log = [0,0,0,0.4];
+			this.setupWorld();
 			return true;
 		},
 		onResize: function() {

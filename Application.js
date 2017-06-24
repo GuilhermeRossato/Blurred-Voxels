@@ -4,9 +4,9 @@ const Application = (function() {
 	//performancer.wrapper.style.display = "none";
 	var world;
 	function firstFrame() {
-		GUI.logger.log(`Loaded Page at ${(this.pageLoadTime | 0)}ms and Images at ${(this.imageLoadTime | 0)}ms`);
 		lastTimeStamp = 0;
 		leftOver = 0;
+		world = new WorldHandler(this.images);
 		world.init(GUI.camera, GUI.scenes);
 		GUI.render();
 		GUI.renderers.forEach(render=>render.domElement.style.display = "block");
@@ -34,6 +34,9 @@ const Application = (function() {
 	return {
 		init: function() {
 			window.addEventListener("keydown", this.onKeyDown.bind(this));
+		},
+		startMainLoop: function() {
+			firstFrame.call(this);
 		},
 		onKeyDown: function(event) {
 			if (event.code === "KeyS")
