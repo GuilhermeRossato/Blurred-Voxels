@@ -9,37 +9,14 @@ WorldHandler.prototype = {
 	constructor: WorldHandler,
 	animationPeriod: 360,
 	init: function(camera, scenes) {
+		this.state = "waiting";
 		this.camera = camera;
 		this.scenes = scenes;
-		var noiser = new SimplexNoiseJ();
 		var geometry = this.geometry;
 		var material = this.createMaterial("grass_green.png");
-		var meshes = [];
-		var size = 8;
-		for (var x = -size; x < size; x++) {
-			for (var z = -size; z < size; z++) {
-				var mesh = new THREE.Mesh(geometry, material);
-				noise = noiser.noise2D(x/30, z/30)+1
-				mesh.position.set(x, noise*5|0, z);
-				var nm = mesh.clone();
-				nm.position.y--;
-				meshes.push(mesh, nm);
-			}
-		}
-		scenes.forEach((scene, i) => meshes.forEach(mesh => {
-			var m = mesh.clone();
-			if (i === 0 && m.position.x > 0 && m.position.z > 0)
-				m.visible = true;
-			else if (i === 1 && m.position.x < 0 && m.position.z > 0)
-				m.visible = true;
-			else if (i === 2 && m.position.x < 0 && m.position.z < 0)
-				m.visible = true;
-			else if (i === 3 && m.position.x > 0 && m.position.z < 0)
-				m.visible = true;
-			else
-				m.visible = false;
-			scene.add(m);
-		}));
+		this.loadingMesh = new THREE.Mesh(geometry, material);
+		scenes[0].add(this.loadingMesh);
+
 		var minDist = 4, maxDist = 26;
 		this.df = FastInterpolation.any(minDist*minDist, 0, maxDist*maxDist, this.scenes.length);
 		this.clampSquaredSize = function(d) {
@@ -65,13 +42,42 @@ WorldHandler.prototype = {
 			//transparent: true
 		});
 		return material;
+	}, loadWorld: function(data) {
+		if (this.state !== "loading")
+			return console.warn("Unexpected World Load");
+		let mesh = this.loadingMesh;
+		mesh.parent.remove(mesh);
+		this.loadingMesh = undefined;
+		this.state = "loaded";
+		this.addMeshesFromData(data, mesh);
+	}, addMeshesFromData(data, mesh) {
+		var x, y, z, i, j, jm;
+		jm = this.scenes.length;
+		i = data.getCount();
+		for (y = 0; y < chunkSize; y++)
+			for (z = 0; z < chunkSize; z++)
+				for (x = 0; x < chunkSize; x++)
+					if (data.get(x,y,z) > 0) {
+						for (j = 0 ; j < jm; j++)
+							scene.add(mesh.clone());
+						if (!(i=i-1))
+							break;
+					}
 	}, reset: function() {
 		this.counter = undefined;
 	}, update: function(frames) {
+		frames /= 4;
 		this.counter = (this.counter-frames > 0)?(this.counter-frames):this.animationPeriod;
 		var t = this.counter/this.animationPeriod, c = Math.cos(t*Math.PI*2), s = Math.sin(t*Math.PI*2);
-		this.camera.position.set(c*13,12,s*13);
-		this.camera.lookAt(new THREE.Vector3(c*6,5,s*6));
+
+		if (this.state === "loading" && this.loadingMesh) {
+			t = FastInterpolation.any(0,0,0.9,0.99,1,1).at(t);
+			this.loadingMesh.rotation.y = t*Math.PI*2;
+			return
+		}
+
+		this.camera.position.set(c*18,12,s*18);
+		this.camera.lookAt(new THREE.Vector3(c*9,5,s*9));
 		if (this.counter % 3 === 0) {
 			//this.ray.setFromCamera(new THREE.Vector2(0.0,0.0), this.camera);
 			//this.intersect = this.ray.intersectObjects(this.scenes[0].children)[0];
@@ -79,7 +85,7 @@ WorldHandler.prototype = {
 		this.look = this.camera.position;
 		var len = this.scenes[0].children.length;
 		var elem;
-		for (var i = 0 ; i < len; i++) {
+		for (var i = 4 ; i < len; i++) {
 			elem = this.scenes[0].children[i];
 			if (elem instanceof THREE.Mesh) {
 				var d = this.clampSquaredSize(this.look.distanceToSquared(elem.position));
