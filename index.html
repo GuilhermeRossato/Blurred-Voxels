@@ -4,21 +4,24 @@
 		<meta charset="utf-8">
 		<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
 	</head>
-	<body style="background-color:#ddd;color:#333;width:100vw;height:100vh;margin:0;padding:0;overflow:hidden;">
+	<body style="background-color:#ddd;background-color:#6A6;color:#333;width:100vw;height:100vh;margin:0;padding:0;overflow:hidden;">
 		<script src="https://cdn.rawgit.com/GuilhermeRossato/3D-Redstone-Simulator/1612dcfc/Script/Libraries/three.js"></script>
 		<!--<script src="https://rawgit.com/GuilhermeRossato/3D-Redstone-Simulator/master/Script/Reusable/BezierFunctions.js"></script>-->
 		<script src="https://rawgit.com/GuilhermeRossato/Interpolation-Modules/master/FastInterpolation.js"></script>
 		<script src="https://cdn.rawgit.com/GuilhermeRossato/VoxelWorldGeneration/633ce78c544a2d78d61facf673a6905dd926124e/Script/World/WorldDataArray.js"></script>
 		<script src="https://cdn.rawgit.com/GuilhermeRossato/VoxelWorldGeneration/40793138/Script/World/WorldBase.js"></script>
+		<script src="https://cdn.rawgit.com/GuilhermeRossato/Js-App-Snippets/2cfd85dc/StateMachine.js"></script>
 		<script src="https://rawgit.com/GuilhermeRossato/Js-App-Snippets/master/Performancer/Performancer.js"></script>
 		<script src="ImageCache.js"></script>
 		<script src="ImageLoader.js"></script>
 		<script src="WorldHandler.js"></script>
+		<script src="WorldGenerator.js"></script>
+		<script src="Cinematic.js"></script>
 		<script src="GUI.js"></script>
 		<script src="Application.js"></script>
 		<script src="Loader.js"></script>
 		<div style="display: flex; align-items: center; justify-content: center; width: 100vw; height: 100vh; font-size:48px; font-family:Calibri; text-align: center">
-			<div id="mainWrapper">
+			<div id="mainWrapper" style="transition: opacity 0.4s ease-in">
 				<div>Loading</div>
 				<div style="font-size:24px">Javascript files</div>
 			</div>
