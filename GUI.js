@@ -1,6 +1,6 @@
 const GUI = (function (){
 	return {
-		blurLevels: 4,
+		blurLevels: 6,
 		init: function() {
 			this.logger = new Logger(document.body);
 			this.logger.fadeTime = 30;
@@ -9,7 +9,6 @@ const GUI = (function (){
 			this.logger.domElement.style.marginLeft = "82px";
 			this.logger.domElement.style.fontFamily = "Calibri";
 			this.logger.colors.log = [0,0,0,0.4];
-			if (!this.setupWorld()) return this.logger.error("Error: WebGL is not supported by the browser.");
 			return true;
 		},
 		onResize: function() {
@@ -37,7 +36,7 @@ const GUI = (function (){
 					renderer.domElement.style.zIndex = (-i-1).toString();
 					renderer.domElement.style.backfaceVisibility = "hidden";
 					renderer.domElement.style.perspective = "inherit";
-					renderer.domElement.style.filter = `blur(${i}px) hue-rotate(${(10*(1-i/(this.blurLevels))|0)}deg)`;
+					renderer.domElement.style.filter = `blur(${i*0.25}px) hue-rotate(${(0*(1-i/(this.blurLevels))|0)}deg)`;
 					//renderer.domElement.style.filter = `hue-rotate(${(360*(1-i/(this.blurLevels))|0)}deg)`;
 					console.log(renderer.domElement.style.filter);
 
