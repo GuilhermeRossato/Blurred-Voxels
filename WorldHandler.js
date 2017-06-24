@@ -9,12 +9,13 @@ WorldHandler.prototype = {
 	constructor: WorldHandler,
 	animationPeriod: 360,
 	init: function(camera, scenes) {
-		this.state = "waiting";
+		this.state = "loading";
 		this.camera = camera;
 		this.scenes = scenes;
 		var geometry = this.geometry;
 		var material = this.createMaterial("grass_green.png");
 		this.loadingMesh = new THREE.Mesh(geometry, material);
+		this.loadingMesh.position.y = 1.5;
 		scenes[0].add(this.loadingMesh);
 
 		var minDist = 4, maxDist = 26;
@@ -66,13 +67,14 @@ WorldHandler.prototype = {
 	}, reset: function() {
 		this.counter = undefined;
 	}, update: function(frames) {
-		frames /= 4;
+		//frames *= 4;
 		this.counter = (this.counter-frames > 0)?(this.counter-frames):this.animationPeriod;
 		var t = this.counter/this.animationPeriod, c = Math.cos(t*Math.PI*2), s = Math.sin(t*Math.PI*2);
-
+		
 		if (this.state === "loading" && this.loadingMesh) {
-			t = FastInterpolation.any(0,0,0.9,0.99,1,1).at(t);
-			this.loadingMesh.rotation.y = t*Math.PI*2;
+			this.counter = (this.counter-frames > 0)?(this.counter-frames):this.animationPeriod;
+			t = FastInterpolation.any(0, 0, 0.01, -0.04, 0.99, 1.04, 1, 1).at(t);
+			this.loadingMesh.rotation.y = t*Math.PI/2;
 			return
 		}
 
