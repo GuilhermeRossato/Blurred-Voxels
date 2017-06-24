@@ -14,14 +14,19 @@ const Loader = (function() {
 		element.innerHTML = text;
 	}
 
+	function hideLoadingInterface() {
+		setDescription("Done");
+		window.mainWrapper.style.opacity = "0";
+	}
+
 	function callEverything() {
 		// Best function name ever
 		state = "init";
 
     	if(typeof(Worker) === "undefined") {
-    		return this.onError("WebWorker is not supported by the browser.");
+    		return this.onError("WebWorker is not supported by the browser");
     	} else if (typeof(HTMLCanvasElement) === "undefined") {
-    		return this.onError("Canvas Element is not supported by the browser.");
+    		return this.onError("Canvas Element is not supported by the browser");
     	}
     	let rendererTest;
     	try {
@@ -29,48 +34,54 @@ const Loader = (function() {
 			rendererTest.dispose();
 			rendererTest = undefined;
 		} catch (err) {
-			return this.onError("WebGl is not supported by the browser.");
+			return this.onError("WebGl is not supported by the browser");
 		}
-		GUI.init();
+		if (!GUI.init())
+			return this.onError("Threejs renderers failed to initialize");
 		Application.init();
-		let worldGenerator = new Worker("https://rawgit.com/GuilhermeRossato/Voxel-World-Generation/master/Script/World/Generation/WorldWorker1.js");
-		worldGenerator.onresponse = ev=>((worldGenerator.terminate() || true) && ((ev.data[0]==="c")?this.onWorldLoad(ev.data.substr(1)):this.onError("World Generation has returned an unhandled event")));
-		worldGenerator.postMessage(`c${(Math.random()*1000|0)},${(Math.random()*1000|0)},${(Math.random()*1000|0)}`);
+		let startPos = [(Math.random()*50|0), (Math.random()*50|0)];
+		console.log("Start position: ",startPos.join());
+		let worldGenerator = new WorldGenerator(startPos[0], startPos[1]);
+		worldGenerator.on("done", this.onWorldLoad.bind(this));
+		worldGenerator.init();
+
 		let imageLoader = new ImageLoader();
 		imageLoader.on("error", this.onError.bind(this, "Image Loader has returned an unhandled event"));
 		imageLoader.on("done", this.onLoadedImages.bind(this));
 		imageLoader.loadImages(imageLoaderCache.map(i=>i.fileName));
-		this.images = imageLoader.getImages();
+		Application.images = imageLoader.getImages();
 	}
 
 	return {
 		onPageLoad: function() {
 			setLocalVariables();
-			setDescription("WAITING STUFF!");
+			setDescription("Generating World...");
 			callEverything.call(this);
 			this.onPageLoad = undefined;
 		},
 		onLoadedImages: function() {
 			this.onLoadedImages = undefined;
-			times.images = performance.now();
-			Application.images = this.images;
+			times.images = performance.now()|0;
 			Application.startMainLoop();
 		},
 		onError: function(message, event) {
 			window.mainWrapper.children[0].innerText = "Error";
 			setDescription(message);
 		},
-		onWorldLoad: function(data) {
+		onWorldLoad: function(chunks) {
 			if (this.onLoadImages !== undefined) {
 				console.log("That's unusual, world returned before images!");
-				console.log("Trying again");
-				return setTimeout(this.onWorldLoad.bind(this, data), 1000);
+				console.log("App will run without them! :v");
+				this.onLoadedImages = undefined;
+				Application.startMainLoop();
 			}
-			times.world = performance.now();
-			console.log(times);
-			let interpreted = decodeWorldMessage(data);
-			let worldData = new WorldDataArray(chunkSize, chunkSize, chunkSize);
-			data.decode(data.substr(interpreted.start+1));
+			times.world = performance.now()|0;
+
+			hideLoadingInterface();
+
+			chunks.forEach(chunk => {
+				Application.addChunk(chunk);
+			});
 		}
 	}
 })();
