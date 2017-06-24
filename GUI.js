@@ -1,9 +1,8 @@
-const GUI = (function (){
+const GUI = (function() {
 	return {
-		blurLevels: 6,
+		blurLevels: 10,
 		init: function() {
-			this.setupWorld();
-			return true;
+			return this.setupWorld();
 		},
 		onResize: function() {
 			if (this.camera) {
@@ -14,7 +13,7 @@ const GUI = (function (){
 		},
 		setupWorld: function() {
 			let rendererConfig = {
-				antialias: false,
+				antialias: true,
 				alpha: true,
 				clearColor: getComputedStyle(document.body)["background-color"]
 			}
@@ -22,16 +21,22 @@ const GUI = (function (){
 				this.renderers = [];
 				this.scenes = [];
 				for (let i = 0; i < this.blurLevels; i++) {
+					var t = (((i-3)%this.blurLevels) / this.blurLevels);
 					let renderer = new THREE.WebGLRenderer(rendererConfig);
 					//renderer.setClearColor(new THREE.Color(rendererConfig.clearColor), 1);
 					renderer.domElement.style.position = "absolute";
 					renderer.domElement.style.top = "0";
 					renderer.domElement.style.display = "none";
-					renderer.domElement.style.zIndex = (-i-1).toString();
+					renderer.domElement.style.zIndex = (-i - 1).toString();
 					renderer.domElement.style.backfaceVisibility = "hidden";
 					renderer.domElement.style.perspective = "inherit";
-					renderer.domElement.style.filter = `blur(${i*0.25}px) hue-rotate(${(0*(1-i/(this.blurLevels))|0)}deg)`;
-					//renderer.domElement.style.filter = `hue-rotate(${(360*(1-i/(this.blurLevels))|0)}deg)`;
+					//let brightness = FastInterpolation.any(0, 0, 0.9, 0.91, 1, 1, 1-t);
+					//renderer.domElement.style.filter = `brightness(${(((brightness * 1000) | 0)/10)}%)`;
+					//let level = [1,0,0,0,0,0,0,0][i];
+					level = Math.abs(FastInterpolation.any(0,0,1,5,t));
+					renderer.domElement.style.filter = `blur(${level}px)`;
+					//renderer.domElement.style.filter = `blur(${level}px) hue-rotate(${(360*(1-t)|0)}deg)`;
+					//renderer.domElement.style.filter = `hue-rotate(${(360*(1-t)|0)}deg)`;
 					console.log(renderer.domElement.style.filter);
 
 					document.body.appendChild(renderer.domElement);
@@ -39,10 +44,11 @@ const GUI = (function (){
 					this.scenes.push(new THREE.Scene());
 				}
 			} catch (err) {
+				console.error(err);
 				return false;
 			}
-			this.camera = new THREE.PerspectiveCamera(85,window.innerWidth / window.innerHeight, 0.2, 100);
-			this.camera.position.set(0,0,4);
+			this.camera = new THREE.PerspectiveCamera(85,window.innerWidth / window.innerHeight,0.2,100);
+			this.camera.position.set(0, 0, 4);
 			addEventListener('resize', this.onResize.bind(this), false);
 			this.onResize();
 			this.setupLight();
@@ -50,7 +56,7 @@ const GUI = (function (){
 		},
 		setupLight: function() {
 			function addLight(name, position, intensity) {
-				let light = new THREE.DirectionalLight(0xffffff, intensity);
+				let light = new THREE.DirectionalLight(0xffffff,intensity);
 				light.position.copy(position);
 				light.name = name;
 				return light;
@@ -63,9 +69,10 @@ const GUI = (function (){
 			addLight("Right",	{ x: 1, y: 0, z: 0 },	1.7742),
 			addLight("Bottom",	{ x: 0, y: -1, z: 0 },	1.5161)];
 			this.scenes.forEach(scene => lights.forEach(light=>scene.children.push(light)));
+			this.scenes.forEach(scene=>lights.forEach(light=>scene.children.push(light)));
 		},
 		render: function() {
-			for (let i = 0; i < this.blurLevels; i++) {
+			for (let i = 0; i < this.renderers.length; i++) {
 				this.renderers[i].render(this.scenes[i], this.camera);
 			}
 		}
