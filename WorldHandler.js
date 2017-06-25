@@ -13,18 +13,17 @@ WorldHandler.prototype = {
 		this.camera = camera;
 		this.scenes = scenes;
 		var geometry = this.geometry;
-		var material = this.createMaterial("grass_green.png");
+		var material = this.createMaterial("planks_spruce.png");
 		this.loadMeshes = scenes.map(scene => new THREE.Mesh(geometry, material));
 		this.loadMeshes.forEach((mesh, i) => (mesh.position.y = 1.5) && (scenes[i].add(mesh)));
 		var minDist = -5, maxDist = 50;
 		//this.df = FastInterpolation.any(minDist*minDist, 0, maxDist*maxDist, this.scenes.length);
-
 		/* Transform Squared into Index */
 		this.getIndex = function(d) {
 			//return (FastInterpolation.any(0,0,60,this.scenes.length, Math.sqrt(d)))|0;
-			if (d < 60)
+			if (d < 40)
 				return 0;
-			else if (d < 143)
+			else if (d < 103)
 				return 1;
 			else if (d < 270)
 				return 2;
@@ -53,7 +52,7 @@ WorldHandler.prototype = {
 	createMaterial: function(fileName) {
 		var image = (this.imageList.filter(img => img.fileName === fileName))[0];
 		if (!image)
-			return false;
+			return;
 		var texture = new THREE.Texture();
 		texture.magFilter = THREE.NearestFilter;
 		texture.minFilter = THREE.LinearFilter;
@@ -62,7 +61,7 @@ WorldHandler.prototype = {
 		texture.anisotropy = 0; // Proven to be unnecessary at the time
 		var material = new THREE.MeshLambertMaterial({
 			map: texture,
-			color: 0x555555,
+			color: 0x282828
 			//opacity: 0.5,
 			//transparent: true
 		});
@@ -110,13 +109,13 @@ WorldHandler.prototype = {
 		lx = this.look.x;
 		ly = this.look.y;
 		lz = this.look.z;
-		var ex, ey, ez, i, j;
+		var elem, ex, ey, ez, i, j;
 		for (i = 4 ; i < len; i++) {
 			elem = this.scenes[0].children[i];
-			if (this.scenes[0].children[i] instanceof THREE.Mesh) {
-				ex = this.scenes[0].children[i].position.x;
-				ey = this.scenes[0].children[i].position.y;
-				ez = this.scenes[0].children[i].position.z;
+			if (elem instanceof THREE.Mesh) {
+				ex = elem.position.x;
+				ey = elem.position.y;
+				ez = elem.position.z;
 				//var d = this.clampSquaredSize((this.look.x-elem.position.x)*(this.look.x-elem.position.x)+(this.look.y-elem.position.y)*(this.look.y-elem.position.y)+(this.look.z-elem.position.z)*(this.look.z-elem.position.z));
 				//var id = this.df.at(d)|0;
 				var id = this.getIndex((lx-ex)*(lx-ex)+(ly-ey)*(ly-ey)+(lz-ez)*(lz-ez));
