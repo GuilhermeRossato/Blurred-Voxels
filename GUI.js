@@ -13,7 +13,7 @@ const GUI = (function() {
 		},
 		setupWorld: function() {
 			let rendererConfig = {
-				antialias: true,
+				antialias: false,
 				alpha: true,
 				clearColor: getComputedStyle(document.body)["background-color"]
 			}

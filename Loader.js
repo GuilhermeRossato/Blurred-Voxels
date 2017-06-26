@@ -40,6 +40,7 @@ const Loader = (function() {
 			return this.onError("Threejs renderers failed to initialize");
 		Application.init();
 		let startPos = [(Math.random()*50|0), (Math.random()*50|0)];
+		startPos = [39,27];
 		console.log("Start position: ",startPos.join());
 		let worldGenerator = new WorldGenerator(startPos[0], startPos[1]);
 		worldGenerator.on("done", this.onWorldLoad.bind(this));

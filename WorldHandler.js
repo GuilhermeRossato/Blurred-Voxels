@@ -72,7 +72,8 @@ WorldHandler.prototype = {
 		if (!this.chunks)
 			this.chunks = []
 		this.chunks.push(chunk);
-	}, addMeshesFromLoadedData() {
+	},
+	addMeshesFromLoadedData: function() {
 		var x, y, z, i, j, jm, data, offsetX, offsetY, offsetZ;
 		/* Remove past element */
 		var mesh = this.loadMeshes[0];
@@ -102,7 +103,53 @@ WorldHandler.prototype = {
 		this.loadMeshes = undefined;
 	}, reset: function() {
 		this.counter = undefined;
+	}, iterateLoading: function() {
+		this.fillerIndex = {
+			chunk: 0,
+			px: 0,
+			py: 0,
+			pz: 0,
+			count: 0
+		}
+		return (this.iterateLoading = (function() {
+			if (this.fillerIndex.x >= chunkSize) {
+				this.fillerIndex.x = 0;
+				this.fillerIndex.z++;
+			}
+			if (this.fillerIndex.z >= chunkSize) {
+				this.fillerIndex.z = 0;
+				this.fillerIndex.y++;
+			}
+			if (this.fillerIndex.chunk >=his.chunks.length) {
+				return;
+			}
+			if (this.fillerIndex.y >= chunkSize || this.fillerIndex.count === 0) {
+				this.fillerIndex.x = 0;
+				this.fillerIndex.y = 0;
+				this.fillerIndex.z = 0;
+				if (this.fillerIndex.chunk < this.chunks.length) {
+					this.fillerIndex.chunk++;
+					if (this.fillerIndex.chunk < this.chunks.length) {
+						this.fillerIndex.count = this.chunks[this.fillerIndex.chunk];
+					}
+				}
+			}
+
+			for (var c = this.fillerIndex.chunk;c < this.chunks.length;c++)
+				for (var y = this.fillerIndex.y;y < chunkSize;y++)
+					for (var z = this.fillerIndex.z;z < chunkSize;z++)
+						for (var x = this.fillerIndex.x;x < chunkSize;x++)
+							if ((y != 2 || offsetY > -18) && (data.get(x,y,z) > 0)) {
+								this.fillerIndex.x = x+1;
+								this.fillerIndex.y = y;
+								this.fillerIndez.z = z;
+								this.fillerIndex.count--;
+								return
+							}
+			this.fillerIndex.chunk = this.chunks.length;
+		}).bind(this))();
 	}, update: function(frames) {
+		(this.finishedLoading === false) && (this.iterateLoading()) && (this.finishedLoading = true);
 		this.look = this.camera.position;
 		var len = this.scenes[0].children.length;
 		var lx, ly, lz;
