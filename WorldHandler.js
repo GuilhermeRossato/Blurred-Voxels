@@ -9,6 +9,7 @@ function WorldHandler(imageList) {
 WorldHandler.prototype = {
 	constructor: WorldHandler,
 	init: function(camera, scenes) {
+		this.reset = true;
 		this.loaded = false;
 		this.camera = camera;
 		this.scenes = scenes;
@@ -73,7 +74,7 @@ WorldHandler.prototype = {
 			this.chunks = []
 		this.chunks.push(chunk);
 	},
-	addMeshesFromLoadedData: function() {
+	addMeshesFromLoadedData_OLD: function() {
 		var x, y, z, i, j, jm, data, offsetX, offsetY, offsetZ;
 		/* Remove past element */
 		var mesh = this.loadMeshes[0];
@@ -103,50 +104,54 @@ WorldHandler.prototype = {
 		this.loadMeshes = undefined;
 	}, reset: function() {
 		this.counter = undefined;
+	}, startAddingBlocks: function() {
+		this.finishedLoading = false;
+		this.reset = false;
 	}, iterateLoading: function() {
 		this.fillerIndex = {
 			chunk: 0,
-			px: 0,
-			py: 0,
-			pz: 0,
-			count: 0
+			x: 0,
+			y: 0,
+			z: 0,
+			count: this.chunks[0]?this.chunks[0].count:512
 		}
+		var offsetX, offsetY, offsetZ, chunk, j;
+		var mesh = this.loadMeshes[0];
+		this.loadMeshes.forEach(mesh => mesh.parent.remove(mesh));
+		var jm = this.scenes.length;
+		var added;
 		return (this.iterateLoading = (function() {
-			if (this.fillerIndex.x >= chunkSize) {
-				this.fillerIndex.x = 0;
-				this.fillerIndex.z++;
-			}
-			if (this.fillerIndex.z >= chunkSize) {
-				this.fillerIndex.z = 0;
-				this.fillerIndex.y++;
-			}
-			if (this.fillerIndex.chunk >=his.chunks.length) {
-				return;
-			}
-			if (this.fillerIndex.y >= chunkSize || this.fillerIndex.count === 0) {
-				this.fillerIndex.x = 0;
-				this.fillerIndex.y = 0;
-				this.fillerIndex.z = 0;
-				if (this.fillerIndex.chunk < this.chunks.length) {
-					this.fillerIndex.chunk++;
-					if (this.fillerIndex.chunk < this.chunks.length) {
-						this.fillerIndex.count = this.chunks[this.fillerIndex.chunk];
+			added = 0;
+			while ((this.fillerIndex.chunk < this.chunks.length) && (added < 50)) {
+				chunk = this.chunks[this.fillerIndex.chunk];
+				offsetX = (chunk.offset[0]-0.5)*chunkSize;
+				offsetY = (chunk.offset[1]-1.1)*chunkSize;
+				offsetZ = (chunk.offset[2]-0.5)*chunkSize;
+				if ((this.fillerIndex.count > 0) && (this.fillerIndex.y != 2 || offsetY > -18) && (chunk.data.get(this.fillerIndex.x,this.fillerIndex.y,this.fillerIndex.z) > 0)) {
+					added++;
+					this.fillerIndex.count--;
+					mesh.position.set(offsetX+this.fillerIndex.x, offsetY+this.fillerIndex.y, offsetZ+this.fillerIndex.z);
+					for (j = 0 ; j < jm; j++) {
+						this.scenes[j].add(mesh.clone());
 					}
 				}
+				this.fillerIndex.x++;
+				if (this.fillerIndex.x >= chunkSize) {
+					this.fillerIndex.x = 0;
+					this.fillerIndex.z++;
+				}
+				if (this.fillerIndex.z >= chunkSize) {
+					this.fillerIndex.z = 0;
+					this.fillerIndex.y++;
+				}
+				if (this.fillerIndex.y >= chunkSize || this.fillerIndex.count === 0) {
+					this.fillerIndex.y = 0;
+					this.fillerIndex.chunk++;
+					if (this.fillerIndex.chunk < this.chunks.length)
+						this.fillerIndex.count = chunk.count;
+				}
 			}
-
-			for (var c = this.fillerIndex.chunk;c < this.chunks.length;c++)
-				for (var y = this.fillerIndex.y;y < chunkSize;y++)
-					for (var z = this.fillerIndex.z;z < chunkSize;z++)
-						for (var x = this.fillerIndex.x;x < chunkSize;x++)
-							if ((y != 2 || offsetY > -18) && (data.get(x,y,z) > 0)) {
-								this.fillerIndex.x = x+1;
-								this.fillerIndex.y = y;
-								this.fillerIndez.z = z;
-								this.fillerIndex.count--;
-								return
-							}
-			this.fillerIndex.chunk = this.chunks.length;
+			return (added < 3);
 		}).bind(this))();
 	}, update: function(frames) {
 		(this.finishedLoading === false) && (this.iterateLoading()) && (this.finishedLoading = true);
@@ -156,7 +161,7 @@ WorldHandler.prototype = {
 		lx = this.look.x;
 		ly = this.look.y;
 		lz = this.look.z;
-		var elem, ex, ey, ez, i, j;
+		var elem, ex, ey, ez, i, j, id;
 		for (i = 4 ; i < len; i++) {
 			elem = this.scenes[0].children[i];
 			if (elem instanceof THREE.Mesh) {
@@ -165,7 +170,11 @@ WorldHandler.prototype = {
 				ez = elem.position.z;
 				//var d = this.clampSquaredSize((this.look.x-elem.position.x)*(this.look.x-elem.position.x)+(this.look.y-elem.position.y)*(this.look.y-elem.position.y)+(this.look.z-elem.position.z)*(this.look.z-elem.position.z));
 				//var id = this.df.at(d)|0;
-				var id = this.getIndex((lx-ex)*(lx-ex)+(ly-ey)*(ly-ey)+(lz-ez)*(lz-ez));
+				if (this.reset) {
+					id = 2;
+				} else {
+					id = this.getIndex((lx-ex)*(lx-ex)+(ly-ey)*(ly-ey)+(lz-ez)*(lz-ez));
+				}
 				//(id < 0) && (id = 0) || (id >= this.scenes.length) && (id = this.scenes.length-1);
 				for (j = 0 ; j < this.scenes.length; j++) {
 					this.scenes[j].children[i].visible = (id === j);
