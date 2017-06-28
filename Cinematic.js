@@ -12,23 +12,26 @@ function Cinematic() {
 				last: "unitialized",
 				next: "loading",
 				event: function() {
-					this.periods.animation = 120;
 				}
 			}, {
 				last: "loading",
 				next: "loading-zoom",
 			}, {
 				last: "loading-zoom",
-				next: "zoom",
+				next: "zoom-out-start",
 				event: function() {
-					this.startedAt = performance.now();
+					//this.startedAt = performance.now();
 				}
 			}, {
-				last: "zoom",
+				last: "zoom-out-start",
+				next: "zoom-out-end",
+				event: function() {
+					this.world.startAddingBlocks();
+				}
+			}, {
+				last: "zoom-out-end",
 				next: "normal",
 				event: function() {
-					this.periods.animation = 360;
-					this.world.addMeshesFromLoadedData();
 				}
 			}
 		]
@@ -40,7 +43,7 @@ Cinematic.prototype = {
 	constructor: Cinematic,
 	periods: {
 		animation: 360,
-		zoomOut: 480
+		zoomOut: 40
 	},
 	init: function(world, camera, scenes) {
 		this.world = world;
@@ -70,43 +73,51 @@ Cinematic.prototype = {
 		position = this.camera.position;
 		focus = new THREE.Vector3(0, 0, 0);
 		counter = 0;
+		mainCounter = 0;
 		/* Update is a Lambda Function */
 		let update = (function(elapsed) {
+			mainCounter+=elapsed;
 			if (this.state === "loading-zoom") {
 				counter -= elapsed*4;
 			} else {
 				counter -= elapsed;
 			}
 			if (counter <= 0) {
+				if (this.state === "loading-zoom") {
+					this.startedAt = mainCounter;
+					this.state = "zoom-out-start";
+				}
 				counter = this.periods.animation;
-				if (this.state === "loading-zoom")
-					this.state = "zoom";
 			}
 			t = counter/this.periods.animation;
 			if (this.state.substr(0,7) === "loading") {
-				t = this.translations.bounce(t);
+				t = -this.translations.bounce(t);
 			}
 			c = Math.cos(t*Math.PI*2);
 			s = Math.sin(t*Math.PI*2);
 			if (this.state.substr(0,7) === "loading") {
 				distance = 4;
-				position.set(c*distance,0,s*distance);
+				position.set(s*distance,0,c*distance);
 				focus.set(0,0,0);
-			} else if (this.state === "zoom") {
-				var df = (performance.now() - this.startedAt)/this.periods.zoomOut;
+			} else if (this.state.substr(0,8) === "zoom-out") {
+				var df = (mainCounter - this.startedAt)/this.periods.zoomOut;
+				(df > 0.5) && (this.state !== "zoom-out-end") && (this.state = "zoom-out-end");
 				(df > 1) && (df = 1) && (this.state = "normal");
 				distance = FastInterpolation.any(0,4,1,22).at(df);
-				position.x = c*distance;
+				position.x = s*distance;
 				position.y = FastInterpolation.any(0,0,1,15).at(df);
-				position.z = s*distance;
+				position.z = c*distance;
 				distance = FastInterpolation.any(0,0,1,9).at(df);
-				focus.x = c*distance;
+				focus.x = s*distance;
 				focus.y = FastInterpolation.any(0,0,1,4).at(df);
-				focus.z = s*distance;
+				focus.z = c*distance;
 			} else if (this.state === "normal") {
 				distance = 22;
-				position.set(c*distance,15,s*distance);
-				focus.set(c*9,4,s*9);
+				position.set(s*distance,15,c*distance);
+				//focus.set(s*9,4,c*9);
+				focus.x = s*9;
+				focus.y = FastInterpolation.any(0,0,1,4).at(1);
+				focus.z = c*9;
 			}
 			this.camera.lookAt(focus);
 			return;
