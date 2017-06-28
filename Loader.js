@@ -70,10 +70,11 @@ const Loader = (function() {
 			setDescription(message);
 		},
 		onWorldLoad: function(chunks) {
-			if (this.onLoadImages !== undefined) {
+			if (this.onLoadedImages !== undefined) {
 				console.log("That's unusual, world returned before images!");
 				console.log("App will run without them! :v");
-				this.onLoadedImages = undefined;
+				var moment = performance.now();
+				this.onLoadedImages = ()=>{console.log("Images loaded after "+(performance.now()-moment)+"ms!")};
 				Application.startMainLoop();
 			}
 			times.world = performance.now()|0;
