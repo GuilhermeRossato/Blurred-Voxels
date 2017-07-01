@@ -42,7 +42,7 @@ function Cinematic() {
 Cinematic.prototype = {
 	constructor: Cinematic,
 	periods: {
-		animation: 360,
+		animation: 720,
 		zoomOut: 40
 	},
 	init: function(world, camera, scenes) {
@@ -73,6 +73,7 @@ Cinematic.prototype = {
 		position = this.camera.position;
 		focus = new THREE.Vector3(0, 0, 0);
 		counter = 0;
+		this.resetAngle = ()=>(counter = 0);
 		mainCounter = 0;
 		/* Update is a Lambda Function */
 		let update = (function(elapsed) {
