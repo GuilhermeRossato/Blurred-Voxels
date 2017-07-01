@@ -8,7 +8,8 @@ function WorldHandler(imageList) {
 
 WorldHandler.prototype = {
 	constructor: WorldHandler,
-	init: function(camera, scenes) {
+	init: function(camera, scenes, sizeOption) {
+		this.sizeOption = sizeOption;
 		this.reset = true;
 		this.loaded = false;
 		this.camera = camera;
@@ -119,20 +120,28 @@ WorldHandler.prototype = {
 		var mesh = this.loadMeshes[0];
 		this.loadMeshes.forEach(mesh => mesh.parent.remove(mesh));
 		var jm = this.scenes.length;
+		var extraOffset;
+		if (this.sizeOption == "1")
+			extraOffset = [1, 1];
+		else
+			extraOffset = [0.5, 0.5];
 		var added;
-		return (this.iterateLoading = (function() {
+		// Note: this is not being run in the first time
+		this.iterateLoading = (function() {
 			added = 0;
 			while ((this.fillerIndex.chunk < this.chunks.length) && (added < 50)) {
 				chunk = this.chunks[this.fillerIndex.chunk];
-				offsetX = (chunk.offset[0]-0.5)*chunkSize;
+				offsetX = (chunk.offset[0]-extraOffset[0])*chunkSize;
 				offsetY = (chunk.offset[1]-1.1)*chunkSize;
-				offsetZ = (chunk.offset[2]-0.5)*chunkSize;
-				if ((this.fillerIndex.count > 0) && (this.fillerIndex.y != 2 || offsetY > -18) && (chunk.data.get(this.fillerIndex.x,this.fillerIndex.y,this.fillerIndex.z) > 0)) {
-					added++;
-					this.fillerIndex.count--;
-					mesh.position.set(offsetX+this.fillerIndex.x, offsetY+this.fillerIndex.y, offsetZ+this.fillerIndex.z);
-					for (j = 0 ; j < jm; j++) {
-						this.scenes[j].add(mesh.clone());
+				offsetZ = (chunk.offset[2]-extraOffset[1])*chunkSize;
+				if ((this.fillerIndex.count > 0) && (chunk.data.get(this.fillerIndex.x,this.fillerIndex.y,this.fillerIndex.z) > 0)) {
+					if (this.fillerIndex.y != 2 || offsetY > -18) {
+						this.fillerIndex.count--;
+						added++;
+						mesh.position.set(offsetX+this.fillerIndex.x, offsetY+this.fillerIndex.y, offsetZ+this.fillerIndex.z);
+							for (j = 0 ; j < jm; j++) {
+							this.scenes[j].add(mesh.clone());
+						}
 					}
 				}
 				this.fillerIndex.x++;
@@ -144,15 +153,15 @@ WorldHandler.prototype = {
 					this.fillerIndex.z = 0;
 					this.fillerIndex.y++;
 				}
-				if (this.fillerIndex.y >= chunkSize || this.fillerIndex.count === 0) {
+				if (this.fillerIndex.y >= chunkSize || this.fillerIndex.count <= 0) {
 					this.fillerIndex.y = 0;
 					this.fillerIndex.chunk++;
 					if (this.fillerIndex.chunk < this.chunks.length)
-						this.fillerIndex.count = chunk.count;
+						this.fillerIndex.count = chunk.count+50;
 				}
 			}
 			return (added < 3);
-		}).bind(this))();
+		}).bind(this);
 	}, update: function(frames) {
 		(this.finishedLoading === false) && (this.iterateLoading()) && (this.finishedLoading = true);
 		this.look = this.camera.position;

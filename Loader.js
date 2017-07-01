@@ -7,7 +7,9 @@ const Loader = (function() {
 	function setLocalVariables() {
 		element = window.mainWrapper.children[1];
 		state = "init";
-		times = {init: performance.now()};
+		times = {
+			init: performance.now()
+		};
 	}
 
 	function setDescription(text) {
@@ -23,13 +25,13 @@ const Loader = (function() {
 		// Best function name ever
 		state = "init";
 
-    	if(typeof(Worker) === "undefined") {
-    		return this.onError("WebWorker is not supported by the browser");
-    	} else if (typeof(HTMLCanvasElement) === "undefined") {
-    		return this.onError("Canvas Element is not supported by the browser");
-    	}
-    	let rendererTest;
-    	try {
+		if (typeof (Worker) === "undefined") {
+			return this.onError("WebWorker is not supported by the browser");
+		} else if (typeof (HTMLCanvasElement) === "undefined") {
+			return this.onError("Canvas Element is not supported by the browser");
+		}
+		let rendererTest;
+		try {
 			rendererTest = new THREE.WebGLRenderer();
 			rendererTest.dispose();
 			rendererTest = undefined;
@@ -39,13 +41,55 @@ const Loader = (function() {
 		if (!GUI.init())
 			return this.onError("Threejs renderers failed to initialize");
 		Application.init();
-		let startPos = [(Math.random()*50|0), (Math.random()*50|0)];
-		startPos = [39,27];
-		console.log("Start position: ",startPos.join());
-		let worldGenerator = new WorldGenerator(startPos[0], startPos[1]);
+		initWorldGen.call(this);
+		initImageLoad.call(this);
+	}
+
+	function initWorldGen() {
+		/*
+		* Entire option menu was was made in a _rush_ and so was this function
+		* IT IS BAD CODE! Not safe for human reading!
+		*/
+		let startConfig = {}
+		  , parType = window.location.search.substr(6, 6)
+		  , parSize = window.location.search.substr(17, 1);
+		if (parSize == "")
+			parSize = "1";
+		if (parType == "")
+			parType = "static";
+		/* Decide World Gen Position */
+		if (parType == "random")
+			startConfig.position = [(Math.random() * 100 | 0), (Math.random() * 100 | 0)];
+		else {
+			if (parSize == "0") {
+				startConfig.position = [2, 4];
+			} else if (parSize == "1") {
+				startConfig.position = [53, 91];
+			} else if (parSize == "2") {
+				startConfig.position = [12, 19];
+			} else {
+				startConfig.position = [39, 27];
+			}
+		}
+		/* Decide World Size */
+		if (parSize == "0") {
+			startConfig.size = 2;
+		} else if (parSize == "1") {
+			startConfig.size = 8;
+		} else if (parSize == "2") {
+			startConfig.size = 18;
+		} else if (parSize == "3") {
+			startConfig.size = 50;
+		} else {
+			startConfig.size = 4;
+		}
+		/* Create World Generator */
+		console.log("Start Position: "+startConfig.position.join(), "Size: "+startConfig.size);
+		let worldGenerator = new WorldGenerator(startConfig);
 		worldGenerator.on("done", this.onWorldLoad.bind(this));
 		worldGenerator.init();
-
+	}
+	function initImageLoad() {
 		let imageLoader = new ImageLoader();
 		imageLoader.on("error", this.onError.bind(this, "Image Loader has returned an unhandled event"));
 		imageLoader.on("done", this.onLoadedImages.bind(this));
@@ -62,7 +106,7 @@ const Loader = (function() {
 		},
 		onLoadedImages: function() {
 			this.onLoadedImages = undefined;
-			times.images = performance.now()|0;
+			times.images = performance.now() | 0;
 			Application.startMainLoop();
 		},
 		onError: function(message, event) {
@@ -74,16 +118,20 @@ const Loader = (function() {
 				console.log("That's unusual, world returned before images!");
 				console.log("App will run without them! :v");
 				var moment = performance.now();
-				this.onLoadedImages = ()=>{console.log("Images loaded after "+(performance.now()-moment)+"ms!")};
+				this.onLoadedImages = ()=>{
+					console.log("Images loaded after " + (performance.now() - moment) + "ms!")
+				}
+				;
 				Application.startMainLoop();
 			}
-			times.world = performance.now()|0;
+			times.world = performance.now() | 0;
 
 			hideLoadingInterface();
 
-			chunks.forEach(chunk => {
+			chunks.forEach(chunk=>{
 				Application.addChunk(chunk);
-			});
+			}
+			);
 		}
 	}
 })();

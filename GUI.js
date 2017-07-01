@@ -11,18 +11,56 @@ const GUI = (function() {
 			}
 			(this.renderers) && ((this.renderers.forEach(renderer=>renderer.setSize(window.innerWidth, window.innerHeight))) || this.render());
 		},
+		onSwitchEffectPress: function() {
+			if (this.currentEffect === "hue") {
+				this.currentEffect = "brightness";
+			} else if (this.currentEffect == "brightness"){
+				this.currentEffect = "blur";
+			} else {
+				this.currentEffect = "hue";
+			}
+			var t, i, level, str;
+			for (i = 0; i < this.blurLevels; i++) {
+				t = (((i-3)%this.blurLevels) / this.blurLevels);
+				level = Math.abs(FastInterpolation.any(0,0,1,5,t));
+				if (this.currentEffect === "hue")
+					str = `hue-rotate(${(360*(t)|0)}deg)`;
+				else if (this.currentEffect === "brightness")
+					str = `brightness(${(((FastInterpolation.any(0.3, 0, 1, 1, 1-t) * 1000) | 0)/10)}%)`;
+				else
+					str = `blur(${level}px)`;
+				this.renderers[i].domElement.style.filter = str;
+			}
+			return this.currentEffect;
+		},
+		onDebugSequencePress: function() {
+			let i = 0, thisInterval, lastCanvas, blurLevelCount = this.blurLevels, renderList = this.renderers;
+			function stepThrough() {
+				(renderList[i] && renderList[i].domElement && (renderList[i].domElement.style.display = "block"));
+				i++;
+				if (i >= blurLevelCount)
+					return clearInterval(thisInterval);
+				(renderList[i] && renderList[i].domElement && (renderList[i].domElement.style.display = "none"));
+			}
+			renderList[0].domElement.style.display = "none";
+			thisInterval = setInterval(stepThrough, 1250);
+		},
+		onRotationSpeedSwitch: function() {
+			return Application.switchCinematicSpeed();
+		},
 		setupWorld: function() {
 			let rendererConfig = {
 				antialias: false,
 				alpha: true,
 				clearColor: getComputedStyle(document.body)["background-color"]
 			}
+			var t, renderer;
 			try {
 				this.renderers = [];
 				this.scenes = [];
 				for (let i = 0; i < this.blurLevels; i++) {
-					var t = (((i-3)%this.blurLevels) / this.blurLevels);
-					let renderer = new THREE.WebGLRenderer(rendererConfig);
+					t = (((i-3)%this.blurLevels) / this.blurLevels);
+					renderer = new THREE.WebGLRenderer(rendererConfig);
 					//renderer.setClearColor(new THREE.Color(rendererConfig.clearColor), 1);
 					renderer.domElement.style.position = "absolute";
 					renderer.domElement.style.top = "0";
@@ -30,13 +68,8 @@ const GUI = (function() {
 					renderer.domElement.style.zIndex = (-i - 1).toString();
 					renderer.domElement.style.backfaceVisibility = "hidden";
 					renderer.domElement.style.perspective = "inherit";
-					//let brightness = FastInterpolation.any(0, 0, 0.9, 0.91, 1, 1, 1-t);
-					//renderer.domElement.style.filter = `brightness(${(((brightness * 1000) | 0)/10)}%)`;
-					//let level = [1,0,0,0,0,0,0,0][i];
 					level = Math.abs(FastInterpolation.any(0,0,1,5,t));
 					renderer.domElement.style.filter = `blur(${level}px)`;
-					//renderer.domElement.style.filter = `blur(${level}px) hue-rotate(${(360*(1-t)|0)}deg)`;
-					//renderer.domElement.style.filter = `hue-rotate(${(360*(1-t)|0)}deg)`;
 					console.log(renderer.domElement.style.filter);
 
 					document.body.appendChild(renderer.domElement);
