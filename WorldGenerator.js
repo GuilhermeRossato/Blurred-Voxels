@@ -1,17 +1,26 @@
-function WorldGenerator(x, z, callback) {
+function WorldGenerator(startConfig, callback) {
 	var origin = {
-		x: x,
-		z: z
+		x: startConfig.position[0],
+		z: startConfig.position[1]
 	}
 	var offsets = [];
-	if (false) {
-		offsets.push([0,0,0], [0,1,0]);
-	} else {
-		offsets.push([0,1,1], [0,1,-1], [0,1,0], [1,1,1], [1,1,-1], [1,1,0],[-1,1,1], [-1,1,-1], [-1,1,0]);
-		offsets.push([0,0,1], [0,0,-1], [0,0,0], [1,0,1], [1,0,-1], [1,0,0],[-1,0,1], [-1,0,-1], [-1,0,0]);
-		offsets.sort((a,b) => ((a[0]*a[0]+a[1]*a[1]+a[2]*a[2] > b[0]*b[0]+b[1]+b[1]+b[2]*b[2])?-1:1));
-		console.log("offsets = "+JSON.stringify(offsets));
+	function addOffsets(...vec2d_array) {
+		vec2d_array.forEach(xy => offsets.push([xy[0], 0, xy[1]], [xy[0], 1, xy[1]]))
 	}
+	var s = startConfig.size;
+	if (s == 2) {
+		offsets.push([0,0,0], [0,1,0]);
+	} else if (s == 18) {
+		addOffsets([0,1], [0,-1], [0,0], [1,1], [1,-1], [1,0],[-1,1], [-1,-1], [-1,0]);
+	} else if (s == 50) {
+		addOffsets([0,1], [0,-1], [0,0], [1,1], [1,-1], [1,0],[-1,1], [-1,-1], [-1,0]);
+		addOffsets([-2,-2], [-2,-1], [-2,0], [-2,1], [-2,2], [-1,-2], [0,-2], [1,-2], [2,-2], [2,-1], [2,0], [2,1], [2,2], [-1,2], [0,2], [1,2]);
+	} else {
+		// Default 8
+		addOffsets([0,1], [1,1], [0,0], [1,0]);
+	}
+
+	offsets.sort((a,b) => ((a[0]*a[0]+a[1]*a[1]+a[2]*a[2] > b[0]*b[0]+b[1]+b[1]+b[2]*b[2])?-1:1));
 	offsets.last = function() { return offsets[offsets.length-1]; }
 	this.events = {
 		callback: callback
