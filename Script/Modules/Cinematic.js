@@ -1,6 +1,6 @@
 /*
 *	A module that handles camera general movement
-*	Don't be fooled by this module generic name: It does very specific work.
+*	Not a generic module! It does very specific work.
 *
 */
 

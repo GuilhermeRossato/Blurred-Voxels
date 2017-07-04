@@ -1,6 +1,7 @@
 /*!
  *
  * Class to handle image loading and, when available, uses a saved 'data:image' reply as if it was a cached image.
+ * Useful to solve cross-origin problems when loading images
  *
  * @name	ImageLoader
  * @type	Javascript Class
