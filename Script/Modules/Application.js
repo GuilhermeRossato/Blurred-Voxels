@@ -24,7 +24,7 @@ const Application = (function() {
 		difference = timeStamp - lastTimeStamp;
 		performancer.update(difference);
 		lastTimeStamp = timeStamp;
-		difference = cinematic.periods.animation / 360;
+		difference = cinematic.periods.animation/720;
 		cinematic.update(difference);
 		world.update(difference);
 		GUI.render();
