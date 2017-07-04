@@ -14,6 +14,10 @@ Just open the file index.html on a browser.
 ![Preview 1](https://github.com/GuilhermeRossato/Blurred-Boxes/blob/master/Images/preview1.gif?raw=true)
  - Depth of field blur effect with 4 canvases
 ![Preview 2](https://github.com/GuilhermeRossato/Blurred-Boxes/blob/master/Images/preview2.gif?raw=true)
+ - Loading screen and world loading animation
+![Preview 3](https://github.com/GuilhermeRossato/Blurred-Boxes/blob/master/Images/preview3.gif?raw=true)
+ - Final Version, with improved performance and sidebar options
+Not yet produced
 
 # How it works
 
