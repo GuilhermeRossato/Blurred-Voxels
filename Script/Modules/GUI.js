@@ -28,7 +28,7 @@ const GUI = (function() {
 				else if (this.currentEffect === "brightness")
 					str = `brightness(${(((FastInterpolation.any(0.3, 0, 1, 1, 1-t) * 1000) | 0)/10)}%)`;
 				else
-					str = `blur(${level}px)`;
+					str = `blur(${Math.abs(level)}px)`;
 				this.renderers[i].domElement.style.filter = str;
 			}
 			return this.currentEffect;
