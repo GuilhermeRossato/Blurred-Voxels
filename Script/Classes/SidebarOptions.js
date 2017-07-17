@@ -1,9 +1,9 @@
 function SidebarOptions(wrapper, configObject) {
 	this.configObject = configObject;
 	this.domElement = document.createElement("div");
-	this.domElement.setAttribute("style", "transition: all 0.5s cubic-bezier(0.65, 0.05, 0.36, 1); position: fixed; left: 0; padding: 5px; margin: 0; background-color:rgba(128,128,128,0.3)");
+	this.domElement.setAttribute("style", "transition: all 0.5s cubic-bezier(0.65, 0.05, 0.36, 1); position: fixed; left: 0; padding: 5px; margin: 0; background-color:rgba(128,128,128,0.4)");
 	let h1 = document.createElement("h1");
-	h1.setAttribute("style", "font-family: courier; text-align: center; text-size: 24px; padding: 5px; margin: 0;");
+	h1.setAttribute("style", "font-family: courier; text-align: center; text-size: 24px; padding: 5px; margin: 0; color:white");
 	h1.appendChild(document.createTextNode("OPTIONS"));
 	this.domElement.appendChild(h1);
 	this.hrCount = 0;
@@ -36,7 +36,6 @@ function SidebarOptions(wrapper, configObject) {
 SidebarOptions.prototype = {
 	constructor: SidebarOptions,
 	/*
-	* If you are reading this. I'm sorry.
 	* There are far too many bad practices below.
 	* I was in a rush.
 	*/
