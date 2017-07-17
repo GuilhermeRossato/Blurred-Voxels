@@ -9,7 +9,7 @@ const Application = (function() {
 		world = new WorldHandler(this.images);
 		world.init(GUI.camera, GUI.scenes, Application.sizeOption);
 		cinematic = new Cinematic();
-		cinematic.init(world, GUI.camera, GUI.scenes);
+		cinematic.init(world, GUI.camera, GUI.scenes, Application.sizeOption);
 		this.world = world;
 		GUI.render();
 		GUI.renderers.forEach(render=>render.domElement.style.display = "block");
@@ -49,11 +49,11 @@ const Application = (function() {
 		},
 		switchCinematicSpeed: function() {
 			if (cinematic.periods.animation === 720) {
-				cinematic.periods.animation = 2048;
+				cinematic.setAnimationPeriod(2048);
 			} else if (cinematic.periods.animation === 2048) {
-				cinematic.periods.animation = 5120;
+				cinematic.setAnimationPeriod(5120);
 			} else {
-				cinematic.periods.animation = 720;
+				cinematic.setAnimationPeriod(720);
 			}
 			return cinematic.periods.animation;
 		},

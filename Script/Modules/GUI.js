@@ -70,7 +70,7 @@ const GUI = (function() {
 					renderer.domElement.style.perspective = "inherit";
 					level = Math.abs(FastInterpolation.any(0,0,1,5,t));
 					renderer.domElement.style.filter = `blur(${level}px)`;
-					console.log(renderer.domElement.style.filter);
+					//console.log(renderer.domElement.style.filter);
 
 					document.body.appendChild(renderer.domElement);
 					this.renderers.push(renderer);

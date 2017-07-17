@@ -1,26 +1,73 @@
 function WorldHandler(imageList) {
+	StateMachine.call(this, {
+		"loading-world": {},
+		"waiting-world": {
+			onEnter: function() {
+				this.createLoadingMesh();
+			},
+			onExit: function() {
+				this.destroyLoadingMesh();
+			}
+		},
+		"creating-world": {
+			onEnter: function() {
+
+			}
+		},
+		"idle": {}
+	});
 	this.imageList = imageList;
 	this.geometry = new THREE.BoxGeometry(1,1,1);
-	this.middle = new THREE.Vector2(0,0);
-	this.look = new THREE.Vector3(0,0);
-	this.loaded = false;
+	this.blockList = [];
 }
 
 WorldHandler.prototype = {
 	constructor: WorldHandler,
+	addBlock: function(mesh, scene) {
+		var block = {
+			mesh: mesh,
+			scene: scene
+		};
+		this.blockList.push(block);
+		scene.add(mesh);
+		return block;
+	},
+	removeBlock: function(block) {
+		block.scene.remove(block.mesh);
+		this.blockList = this.blockList.filter(b => b !== block);
+	},
+	switchBlock: function(block, targetScene) {
+		if (block.scene === targetScene)
+			return;
+		block.scene.remove(block.mesh);
+		block.scene = targetScene;
+		block.scene.add(block.mesh);
+	},
+	removeBlockByIndex: function(index) {
+		if (typeof index === "number" && !isNaN(index)) {
+			this.removeBlock(this.blockList[index]);
+		} else {
+			console.error("Not a valid parameter:",index);
+		}
+	},
+	createLoadingMesh: function() {
+		var mesh = new THREE.Mesh(this.geometry,this.material);
+		mesh.position.set(0, 1.5, 0);
+		this.addBlock(mesh, this.scenes[0]);
+	},
+	destroyLoadingMesh: function() {
+		this.removeBlockByIndex(0);
+	},
 	init: function(camera, scenes, sizeOption) {
 		this.sizeOption = sizeOption;
 		this.reset = true;
-		this.loaded = false;
 		this.camera = camera;
 		this.scenes = scenes;
-		var geometry = this.geometry;
-		var material = this.createMaterial("planks_spruce.png");
-		this.loadMeshes = scenes.map(scene => new THREE.Mesh(geometry, material));
-		this.loadMeshes.forEach((mesh, i) => (mesh.position.y = 1.5) && (scenes[i].add(mesh)));
-		var minDist = -5, maxDist = 50;
-		//this.df = FastInterpolation.any(minDist*minDist, 0, maxDist*maxDist, this.scenes.length);
-		/* Transform Squared into Index */
+		this.material = this.createMaterial("planks_spruce.png");
+		if (this.scenes.length != 10) {
+			console.error("getIndex is not optimized to handle "+this.scenes.length+" scenes!");
+		}
+		/* Define the function that transforms distance into scene index */
 		this.getIndex = function(d) {
 			//return (FastInterpolation.any(0,0,60,this.scenes.length, Math.sqrt(d)))|0;
 			if (d < 40)
@@ -43,16 +90,12 @@ WorldHandler.prototype = {
 				return 8;
 			else
 				return 9;
-			//Generated using   var maxValue = 10, maxDistance = 60, myStr = ""; for (var value = 0; value < maxValue; value++) myStr+=(value===0?"if":"else if")+" (d < "+(Math.pow(FastInterpolation.any(0,0,maxValue,maxDistance,value+0.99999),2)|0)+")\n\treturn "+value+";\n"; myStr;
+			//Generated using:   var maxValue = 10, maxDistance = 60, myStr = ""; for (var value = 0; value < maxValue; value++) myStr+=(value===0?"if":"else if")+" (d < "+(Math.pow(FastInterpolation.any(0,0,maxValue,maxDistance,value+0.99999),2)|0)+")\n\treturn "+value+";\n"; myStr;
 		}
-		this.clampSquaredSize = function(d) {
-			(d < minDist*minDist) && (d = minDist*minDist);
-			(d > maxDist*maxDist) && (d = maxDist*maxDist);
-			return d;
-		}
+		this.state = "waiting-world";
 	},
 	createMaterial: function(fileName) {
-		var image = (this.imageList.filter(img => img.fileName === fileName))[0];
+		var image = (this.imageList.filter(img=>img.fileName === fileName))[0];
 		if (!image)
 			return;
 		var texture = new THREE.Texture();
@@ -60,88 +103,55 @@ WorldHandler.prototype = {
 		texture.minFilter = THREE.LinearFilter;
 		texture.image = image;
 		texture.needsUpdate = true;
-		texture.anisotropy = 0; // Proven to be unnecessary at the time
+		texture.anisotropy = 0;
 		var material = new THREE.MeshLambertMaterial({
 			map: texture,
-			color: 0x282828
-			//opacity: 0.5,
+			color: 0x282828 //opacity: 0.5,
 			//transparent: true
 		});
 		return material;
-	}, addChunk: function(chunk) {
-		if (this.loaded)
-			return console.warn("Unexpected World Load");
+	},
+	addChunk: function(chunk) {
 		if (!this.chunks)
 			this.chunks = []
 		this.chunks.push(chunk);
 	},
-	addMeshesFromLoadedData_OLD: function() {
-		var x, y, z, i, j, jm, data, offsetX, offsetY, offsetZ;
-		/* Remove past element */
-		var mesh = this.loadMeshes[0];
-		this.loadMeshes.forEach(mesh => mesh.parent.remove(mesh));
-		jm = this.scenes.length;
-		this.chunks.forEach(chunk => {
-			/* Fill world with blocks */
-			data = chunk.data;
-			offsetX = (chunk.offset[0]-0.5)*chunkSize;
-			offsetY = (chunk.offset[1]-1.1)*chunkSize;
-			offsetZ = (chunk.offset[2]-0.5)*chunkSize;
-			i = data.getCount();
-			for (y = 0; y < chunkSize; y++)
-				for (z = 0; z < chunkSize; z++)
-					for (x = 0; x < chunkSize; x++) {
-						if ((y != 2 || offsetY > -18) && (data.get(x,y,z) > 0)) {
-							for (j = 0 ; j < jm; j++) {
-								mesh.position.set(x+offsetX, y+offsetY, z+offsetZ);
-								this.scenes[j].add(mesh.clone());
-							}
-							if (!(i=i-1))
-								break;
-						}
-					}
-		});
-		this.loadedData = undefined;
-		this.loadMeshes = undefined;
-	}, reset: function() {
+	reset: function() {
 		this.counter = undefined;
-	}, startAddingBlocks: function() {
-		this.finishedLoading = false;
-		this.reset = false;
-	}, iterateLoading: function() {
+	},
+	iterateLoading: function() {
+		if (this.state !== "creating-world")
+			return;
 		this.fillerIndex = {
 			chunk: 0,
 			x: 0,
 			y: 0,
 			z: 0,
-			count: this.chunks[0]?this.chunks[0].count:512
+			count: this.chunks[0] ? this.chunks[0].count : 512
 		}
 		var offsetX, offsetY, offsetZ, chunk, j;
-		var mesh = this.loadMeshes[0];
-		this.loadMeshes.forEach(mesh => mesh.parent.remove(mesh));
-		var jm = this.scenes.length;
+		var mesh = new THREE.Mesh(this.geometry,this.material);
+		var scene = this.scenes[0];
 		var extraOffset;
 		if (this.sizeOption == "1")
 			extraOffset = [1, 1];
 		else
 			extraOffset = [0.5, 0.5];
 		var added;
-		// Note: this is not being run in the first time
 		this.iterateLoading = (function() {
 			added = 0;
 			while ((this.fillerIndex.chunk < this.chunks.length) && (added < 50)) {
 				chunk = this.chunks[this.fillerIndex.chunk];
-				offsetX = (chunk.offset[0]-extraOffset[0])*chunkSize;
-				offsetY = (chunk.offset[1]-1.1)*chunkSize;
-				offsetZ = (chunk.offset[2]-extraOffset[1])*chunkSize;
-				if ((this.fillerIndex.count > 0) && (chunk.data.get(this.fillerIndex.x,this.fillerIndex.y,this.fillerIndex.z) > 0)) {
+				offsetX = (chunk.offset[0] - extraOffset[0]) * chunkSize;
+				offsetY = (chunk.offset[1] - 1.1) * chunkSize;
+				offsetZ = (chunk.offset[2] - extraOffset[1]) * chunkSize;
+				if ((this.fillerIndex.count > 0) && (chunk.data.get(this.fillerIndex.x, this.fillerIndex.y, this.fillerIndex.z) > 0)) {
 					if (this.fillerIndex.y != 2 || offsetY > -18) {
 						this.fillerIndex.count--;
 						added++;
-						mesh.position.set(offsetX+this.fillerIndex.x, offsetY+this.fillerIndex.y, offsetZ+this.fillerIndex.z);
-							for (j = 0 ; j < jm; j++) {
-							this.scenes[j].add(mesh.clone());
-						}
+						mesh = mesh.clone();
+						mesh.position.set(offsetX + this.fillerIndex.x, offsetY + this.fillerIndex.y, offsetZ + this.fillerIndex.z);
+						this.addBlock(mesh, scene);
 					}
 				}
 				this.fillerIndex.x++;
@@ -157,38 +167,39 @@ WorldHandler.prototype = {
 					this.fillerIndex.y = 0;
 					this.fillerIndex.chunk++;
 					if (this.fillerIndex.chunk < this.chunks.length)
-						this.fillerIndex.count = chunk.count+50;
+						this.fillerIndex.count = chunk.count + 50;
 				}
 			}
-			return (added < 3);
-		}).bind(this);
-	}, update: function(frames) {
-		(this.finishedLoading === false) && (this.iterateLoading()) && (this.finishedLoading = true);
-		this.look = this.camera.position;
-		var len = this.scenes[0].children.length;
+			return ( added < 3) ;
+		}
+		).bind(this);
+	},
+	startAddingBlocks: function() {
+		this.state = "creating-world";
+	},
+	update: function(frames) {
+		this.iterateLoading();
 		var lx, ly, lz;
-		lx = this.look.x;
-		ly = this.look.y;
-		lz = this.look.z;
-		var elem, ex, ey, ez, i, j, id;
-		for (i = 4 ; i < len; i++) {
-			elem = this.scenes[0].children[i];
-			if (elem instanceof THREE.Mesh) {
-				ex = elem.position.x;
-				ey = elem.position.y;
-				ez = elem.position.z;
-				//var d = this.clampSquaredSize((this.look.x-elem.position.x)*(this.look.x-elem.position.x)+(this.look.y-elem.position.y)*(this.look.y-elem.position.y)+(this.look.z-elem.position.z)*(this.look.z-elem.position.z));
-				//var id = this.df.at(d)|0;
-				if (this.reset) {
-					id = 2;
-				} else {
-					id = this.getIndex((lx-ex)*(lx-ex)+(ly-ey)*(ly-ey)+(lz-ez)*(lz-ez));
-				}
-				//(id < 0) && (id = 0) || (id >= this.scenes.length) && (id = this.scenes.length-1);
-				for (j = 0 ; j < this.scenes.length; j++) {
-					this.scenes[j].children[i].visible = (id === j);
-				}
+		lx = this.camera.position.x;
+		ly = this.camera.position.y;
+		lz = this.camera.position.z;
+		var pos, ex, ey, ez, i, j, id;
+		var len = this.blockList.length;
+		var fixedTarget = (this.state === "waiting-world");
+		var scene;
+		for (i = 0; i < len; i++) {
+			elem = this.blockList[i].mesh.position;
+			if (fixedTarget) {
+				/* As a rule of thumb, the scene of index 2 will be the one without blur */
+				scene = ((this.scenes.length > 2)?this.scenes[2]:this.scenes[0]);
+			} else {
+				ex = elem.x;
+				ey = elem.y;
+				ez = elem.z;
+				scene = this.scenes[this.getIndex((lx - ex) * (lx - ex) + (ly - ey) * (ly - ey) + (lz - ez) * (lz - ez))];
 			}
+			this.switchBlock(this.blockList[i], scene);
+			//this.scenes[j].children[i].visible = (id === j);
 		}
 	}
 }

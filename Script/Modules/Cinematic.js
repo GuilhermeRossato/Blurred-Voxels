@@ -1,40 +1,21 @@
 /*
-*	A module that handles camera general movement
-*	Not a generic module! It does very specific work.
+*	A module that handles camera movement
+*	Not a generic module - It does very specific work.
 *
 */
 
 function Cinematic() {
 	StateMachine.call(this, {
-		state: "unitialized",
-		transitions: [
-			{
-				last: "unitialized",
-				next: "loading",
-				event: function() {
-				}
-			}, {
-				last: "loading",
-				next: "loading-zoom",
-			}, {
-				last: "loading-zoom",
-				next: "zoom-out-start",
-				event: function() {
-					//this.startedAt = performance.now();
-				}
-			}, {
-				last: "zoom-out-start",
-				next: "zoom-out-end",
-				event: function() {
-					this.world.startAddingBlocks();
-				}
-			}, {
-				last: "zoom-out-end",
-				next: "normal",
-				event: function() {
-				}
+		"unitialized": {},
+		"loading": {},
+		"loading-zoom": {},
+		"zoom-out-start": {},
+		"zoom-out-end": {
+			onEnter: function() {
+				this.world.startAddingBlocks();
 			}
-		]
+		},
+		"normal": {}
 	});
 
 }
@@ -45,10 +26,11 @@ Cinematic.prototype = {
 		animation: 720,
 		zoomOut: 40
 	},
-	init: function(world, camera, scenes) {
+	init: function(world, camera, scenes, sizeOption) {
 		this.world = world;
 		this.camera = camera;
 		this.scenes = scenes;
+		this.sizeOption = sizeOption;
 		this.state = "loading";
 	},
 	translations: {
@@ -74,7 +56,13 @@ Cinematic.prototype = {
 		focus = new THREE.Vector3(0, 0, 0);
 		counter = 0;
 		this.resetAngle = ()=>(counter = 0);
+		this.setAnimationPeriod = function(value) {
+			var t = counter / this.periods.animation;
+			this.periods.animation = value;
+			counter = t * value;
+		}
 		mainCounter = 0;
+		var finalDistance = (this.sizeOption===3?44:(this.sizeOption===2?26:24));
 		/* Update is a Lambda Function */
 		let update = (function(elapsed) {
 			mainCounter+=elapsed;
@@ -104,7 +92,7 @@ Cinematic.prototype = {
 				var df = (mainCounter - this.startedAt)/this.periods.zoomOut;
 				(df > 0.5) && (this.state !== "zoom-out-end") && (this.state = "zoom-out-end");
 				(df > 1) && (df = 1) && (this.state = "normal");
-				distance = FastInterpolation.any(0,4,1,22).at(df);
+				distance = FastInterpolation.any(0,4,1,finalDistance).at(df);
 				position.x = s*distance;
 				position.y = FastInterpolation.any(0,0,1,15).at(df);
 				position.z = c*distance;
@@ -113,7 +101,7 @@ Cinematic.prototype = {
 				focus.y = FastInterpolation.any(0,0,1,4).at(df);
 				focus.z = c*distance;
 			} else if (this.state === "normal") {
-				distance = 22;
+				distance = finalDistance;
 				position.set(s*distance,15,c*distance);
 				//focus.set(s*9,4,c*9);
 				focus.x = s*9;
