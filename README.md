@@ -16,8 +16,8 @@ Just open the file index.html on a browser.
 ![Preview 2](https://github.com/GuilhermeRossato/Blurred-Boxes/blob/master/Images/preview2.gif?raw=true)
  - Loading screen and world loading animation
 ![Preview 3](https://github.com/GuilhermeRossato/Blurred-Boxes/blob/master/Images/preview3.gif?raw=true)
- - Final Version, with improved performance and sidebar options  
-Not yet produced
+ - Final Version, with improved performance and sidebar options
+![Preview 4](https://github.com/GuilhermeRossato/Blurred-Boxes/blob/master/Images/preview4.png?raw=true)
 
 # How it works
 
