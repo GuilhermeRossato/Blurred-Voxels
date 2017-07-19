@@ -26,7 +26,7 @@ function WorldGenerator(startConfig, callback) {
 		callback: callback
 	};
 
-	let ww = new Worker("https://rawgit.com/GuilhermeRossato/Voxel-World-Generation/master/Script/World/Generation/WorldWorker1.js");
+	let ww = new Worker("https://rawgit.com/GuilhermeRossato/Voxel-World-Generation/master/Script/World/Generation/WorldWorker2.js");
 	ww.chunks = [];
 	ww.onmessage = (ev) => {
 		if (offsets.length > 0) {
