@@ -47,8 +47,7 @@ const Loader = (function() {
 
 	function initWorldGen() {
 		/*
-		* Entire option menu was was made in a _rush_ and so was this function
-		* IT IS BAD CODE! Not safe for human reading!
+		* Entire option menu was was made in a _rush_ and so was this function, it might be messy.
 		*/
 		let startConfig = {}
 		  , parType = window.location.search.substr(6, 6)
@@ -85,9 +84,26 @@ const Loader = (function() {
 		}
 		/* Create World Generator */
 		console.log("Start Position: "+startConfig.position.join(), "Size: "+startConfig.size);
-		let worldGenerator = new WorldGenerator(startConfig);
-		worldGenerator.on("done", this.onWorldLoad.bind(this));
-		worldGenerator.init();
+		try {
+			let worldGenerator = new WorldGenerator(startConfig);
+			worldGenerator.on("done", this.onWorldLoad.bind(this));
+			worldGenerator.init();
+		} catch(err) {
+			window.mainWrapper.children[0].innerText = "Error";
+			if (err.name == "SecurityError") {
+				var str = "Failed to Web Worker due to Cross Origin Conflict<br>";
+				if (location.hostname == "") {
+					str += "You must disable cross origin security to run this locally.<br>There are some tools to help you at the 'Tools' folder:<br>run.bat and run.sh, whichever your OS supports<br>Obs: They require Google Chrome";
+				} else {
+					str += "The error likely was caused because the webworker<br>is being stored in another repository<br>Sorry :) Thats on me<br>You'll have to copy it and put it locally.";
+					str += "<br>Take a look at /Script/Classes/WorldGenerator.js";
+				}
+				setDescription(str);
+			} else {
+				setDescription("Unable to generate Web Worker, check console");
+			}
+			throw err;
+		}
 	}
 	function initImageLoad() {
 		let imageLoader = new ImageLoader();
