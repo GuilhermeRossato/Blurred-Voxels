@@ -21,9 +21,9 @@ Just open the file index.html on a browser.
 
 # How it works
 
-A few nested canvases are put in order, each with a different blur radius. Then a different scene is drawn in each canvas.
+A few nested canvases are put in order, each with a different blur radius.
 
-Each canvas has a range of block "distances" that live in it. They distance between a block and the camera determines the canvas the block will be drawn on and each layer of canvas has a different blurriness.
+Basically each canvas has a range of block "distances" that can be rendered on it. The distance between a block and the camera determines which canvas the block will be drawn on. Each layer of canvas has a different blur radius.
 
 # Problems
 
