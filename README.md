@@ -2,7 +2,7 @@
 
 This is a javascript experiment to simulate a depth of field blur (focus) shader using CSS filters.
 
-[Click here to run the current version](https://rawgit.com/GuilhermeRossato/Blurred-Boxes/master/index.html)
+[Click here to run the current version](http://guilherme-rossato.com/Blurred-Boxes/)
 
 # How to run / build locally
 
@@ -21,8 +21,10 @@ Just open the file index.html on a browser.
 
 # How it works
 
-A few nested canvases are put in order, each with a different blur radius. Then a different scene is drawn in each canvas. The distance between a block and the camera determines how blurry something will look.
+A few nested canvases are put in order, each with a different blur radius. Then a different scene is drawn in each canvas.
+
+Each canvas has a range of block "distances" that live in it. They distance between a block and the camera determines the canvas the block will be drawn on and each layer of canvas has a different blurriness.
 
 # Problems
 
-CSS filters are slow :v
+CSS filters are slower than a GPU could do it.
