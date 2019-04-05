@@ -63,7 +63,20 @@ WorldHandler.prototype = {
 		this.reset = true;
 		this.camera = camera;
 		this.scenes = scenes;
-		this.material = this.createMaterial("planks_spruce.png");
+		function findGetParameter(parameterName) {
+			var result = null,
+			tmp = [];
+			location.search.substr(1).split("&").forEach(function (item) {
+				tmp = item.split("=");
+				if (tmp[0] === parameterName) result = decodeURIComponent(tmp[1]);
+			});
+			return result;
+		}
+		var textureName = "stonebrick.png";
+		if (findGetParameter("btn") === "7") {
+			textureName = "planks_spruce.png";
+		}
+		this.material = this.createMaterial(textureName);
 		if (this.scenes.length != 10) {
 			console.error("getIndex is not optimized to handle "+this.scenes.length+" scenes!");
 		}

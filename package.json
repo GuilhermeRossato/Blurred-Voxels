@@ -1,0 +1,38 @@
+{
+  "name": "blurred-voxels",
+  "version": "1.0.0",
+  "description": "JS experiment to simulate Depth of Field (Focus) Blur shaders using CSS filters",
+  "main": "index.html",
+  "scripts": {
+  	"serve-chrome": "Tools/run-chrome.bat",
+  	"serve-php": "start http://localhost:8080 && php -S localhost:8080",
+  	"run": "npm run serve-chrome",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/GuilhermeRossato/Blurred-Voxels.git"
+  },
+  "keywords": [
+    "css",
+    "css-filters",
+    "shadres",
+    "blurred-boxes",
+    "blurred-voxels",
+    "depth-of-field",
+    "depth-of-field-blur",
+    "blur",
+    "effect",
+    "3d",
+    "simulation",
+    "3d-simulation",
+    "voxel",
+    "voxel-world"
+  ],
+  "author": "Guilherme Rossato",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/GuilhermeRossato/Blurred-Voxels/issues"
+  },
+  "homepage": "https://github.com/GuilhermeRossato/Blurred-Voxels#readme"
+}

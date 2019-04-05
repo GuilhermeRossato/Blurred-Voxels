@@ -7,7 +7,7 @@ function SidebarOptions(wrapper, configObject) {
 	h1.appendChild(document.createTextNode("OPTIONS"));
 	this.domElement.appendChild(h1);
 	this.hrCount = 0;
-	this.buttons = ["Static place", "Random place", undefined, "2 chunks", "8 chunks", "18 chunks", "50 chunks", undefined, "Debug Sequence", "Set effects to Colors", "Set slower rotation"].map(label=>{
+	this.buttons = ["Static place", "Random place", undefined, "2 chunks", "8 chunks", "18 chunks", "50 chunks", undefined, "Debug Sequence", "Set effects to Colors", "Set slower rotation", "Use Alternative Texture"].map(label=>{
 		if (label) {
 			let btn = document.createElement("input");
 			btn.setAttribute("type", "button");
@@ -74,13 +74,21 @@ SidebarOptions.prototype = {
 	onButtonPress: function(btnIndex, event) {
 		let parPlace = (!this.configObject.staticWorld) ? "random" : "static";
 		let parSize = this.configObject.sizeOption.toString();
-		if (btnIndex === 0)
+		if (btnIndex === 0) {
 			parPlace = "static";
-		else if (btnIndex === 1)
+		} else if (btnIndex === 1) {
 			parPlace = "random";
-		else if (btnIndex === 6)
+		} else if (btnIndex === 6) {
+			var btn = this.buttons[btnIndex];
+			if (btn.value === "Debugging Layers...") {
+				return false;
+			}
+			setTimeout(function() {
+				btn.value = "Debug Sequence";
+			}, 2500);
+			btn.value = "Debugging Layers...";
 			return GUI.onDebugSequencePress();
-		else if (btnIndex === 7) {
+		} else if (btnIndex === 7) {
 			let effect = GUI.onSwitchEffectPress();
 			if (effect === "hue")
 				this.buttons[btnIndex].value = "Set effects to Darkness";
