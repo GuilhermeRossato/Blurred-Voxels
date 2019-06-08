@@ -26,7 +26,7 @@ function WorldGenerator(startConfig, callback) {
 		callback: callback
 	};
 
-	let ww = new Worker("/Script/WebWorker/WorldWorker.js");
+	let ww = new Worker("../WebWorker/WorldWorker.js");
 	ww.chunks = [];
 	ww.onmessage = (ev) => {
 		if (offsets.length > 0) {
