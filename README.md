@@ -2,7 +2,7 @@
 
 This is a javascript experiment to simulate a depth of field blur (focus) shader using CSS filters.
 
-[Click here to run the current version](http://grossato.com/Blurred-Voxels/)
+[Click here to run the current version](https://grossato.com/Blurred-Voxels/)
 
 # Motivation
 
@@ -12,7 +12,7 @@ Turns out CSS filters are not super-optimized, but this is still a great experim
 
 # How to run / build locally
 
-[Click here](http://grossato.com/Blurred-Voxels/) to run the current version, hosted on my website.
+[Click here](https://grossato.com/Blurred-Voxels/) to run the current version of the project.
 
 To run locally, you must know that this application needs to be served from a web server or at least loaded with chrome's security disabled.
 
@@ -49,4 +49,4 @@ Each canvas has a range of block "distances" that can be rendered on it. The dis
 
 # Problems
 
-CSS filters are slower than a GPU could do it.
+CSS filters are slow, I just needed to know how slow.
